@@ -25,19 +25,19 @@ export const DATABASE_URL =
   'postgresql://postgres:postgres@localhost:5432/node_mind';
 // export const POSTGRES_PORT = parseInt(process.env.POSTGRES_PORT || '5432', 10);
 
-// // Redis Constants
-// export const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
-// export const REDIS_PORT = parseInt(process.env.REDIS_PORT || '6379', 10);
-// export const REDIS_PASSWORD = process.env.REDIS_PASSWORD || undefined;
-// export const REDIS_DB = parseInt(process.env.REDIS_DB || '0', 10);
+// Redis Constants
+export const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
+export const REDIS_PORT = parseInt(process.env.REDIS_PORT || '6379', 10);
+export const REDIS_PASSWORD = process.env.REDIS_PASSWORD || undefined;
+export const REDIS_DB = parseInt(process.env.REDIS_DB || '0', 10);
 
-// // Mail Constants
-// export const MAIL_HOST = process.env.MAIL_HOST || 'localhost';
-// export const MAIL_PORT = parseInt(process.env.MAIL_PORT || '1025', 10);
-// export const MAIL_USER = process.env.MAIL_USER || undefined;
-// export const MAIL_PASSWORD = process.env.MAIL_PASSWORD || undefined;
-// export const MAIL_FROM =
-//   process.env.MAIL_FROM || '"FinBrain" <noreply@finbrain.com>';
+// Mail Constants
+export const MAIL_HOST = process.env.MAIL_HOST || 'localhost';
+export const MAIL_PORT = parseInt(process.env.MAIL_PORT || '1025', 10);
+export const MAIL_USER = process.env.MAIL_USER || undefined;
+export const MAIL_PASSWORD = process.env.MAIL_PASSWORD || undefined;
+export const MAIL_FROM =
+  process.env.MAIL_FROM || '"Node Mind" <noreply@node-mind.local>';
 
 // // JWT Constants
 // export const JWT_SECRET = process.env.JWT_SECRET || 'your-default-secret';

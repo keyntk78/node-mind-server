@@ -1,10 +1,10 @@
+import { RegisterCommand } from '@application/auth/command/register.command';
 import { LoggingInterceptor } from '@common/interceptors/logging.interceptor';
 import { ResponseService } from '@common/services/response.service';
 import { Body, Controller, Post, UseInterceptors } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { RegisterCommand } from '@application/auth/command/register.command';
 import { RegisterRequestDto } from '../dto/auth/request/register-request.dto';
 
 @ApiTags('auth')
@@ -36,7 +36,8 @@ export class AuthController {
       new RegisterCommand(
         registerDto.email,
         registerDto.password,
-        registerDto.fullName,
+        registerDto.firstName,
+        registerDto.lastName,
       ),
     );
 
