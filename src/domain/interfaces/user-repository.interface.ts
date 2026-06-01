@@ -1,4 +1,4 @@
-import { User } from '@domain/entities';
+import { Profile, User } from '@domain/entities';
 
 export const USER_REPOSITORY = Symbol('USER_REPOSITORY');
 
@@ -17,4 +17,10 @@ export interface UserRepository {
    * Persists a new or changed user aggregate.
    */
   save(user: User): Promise<void>;
+
+  /**
+   * Persists a new user and its 1-1 profile in the same transaction.
+   * Used by register so user/profile cannot be partially created.
+   */
+  saveWithProfile(user: User, profile: Profile): Promise<void>;
 }

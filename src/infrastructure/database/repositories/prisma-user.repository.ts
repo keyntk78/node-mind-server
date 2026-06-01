@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { User } from '@domain/entities';
+import { Profile, User } from '@domain/entities';
 import { UserRepository } from '@domain/interfaces';
+import { ProfilePrismaMapper } from '@infrastructure/database/mappers/profile-prisma.mapper';
 import { UserPrismaMapper } from '@infrastructure/database/mappers/user-prisma.mapper';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 
@@ -33,5 +34,19 @@ export class PrismaUserRepository implements UserRepository {
         updatedAt: persistence.updatedAt,
       },
     });
+  }
+
+  async saveWithProfile(user: User, profile: Profile): Promise<void> {
+    const userPersistence = UserPrismaMapper.toPersistence(user);
+    const profilePersistence = ProfilePrismaMapper.toPersistence(profile);
+
+    await this.prisma.$transaction([
+      this.prisma.user.create({
+        data: userPersistence,
+      }),
+      this.prisma.profile.create({
+        data: profilePersistence,
+      }),
+    ]);
   }
 }
