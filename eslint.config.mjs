@@ -1,35 +1,45 @@
-// @ts-check
-import eslint from '@eslint/js';
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
-import globals from 'globals';
+import js from '@eslint/js';
+import eslintConfigPrettier from 'eslint-config-prettier';
 import tseslint from 'typescript-eslint';
 
-export default tseslint.config(
+export default [
   {
-    ignores: ['eslint.config.mjs'],
+    ignores: ['dist/**', 'node_modules/**', 'coverage/**'],
   },
-  eslint.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
-  eslintPluginPrettierRecommended,
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  eslintConfigPrettier,
   {
     languageOptions: {
-      globals: {
-        ...globals.node,
-        ...globals.jest,
-      },
-      sourceType: 'commonjs',
       parserOptions: {
-        projectService: true,
-        tsconfigRootDir: import.meta.dirname,
+        sourceType: 'module',
+        ecmaVersion: 2020,
       },
     },
-  },
-  {
     rules: {
+      quotes: ['error', 'single', { avoidEscape: true }],
+      'max-len': [
+        'error',
+        { code: 100, ignoreComments: true, ignoreStrings: true },
+      ],
+      'no-console': 'off',
+      'max-classes-per-file': 'off',
+      '@typescript-eslint/explicit-member-accessibility': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/member-ordering': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+      '@typescript-eslint/no-empty-function': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'warn',
-      "prettier/prettier": ["error", { endOfLine: "auto" }],
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
     },
   },
-);
+];
