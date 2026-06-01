@@ -6,8 +6,8 @@ import { ResponseService } from '@common/services/response.service';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { ApiModule } from 'src/api/api.module';
-import { AuthController } from 'src/api/controllers/auth.controller';
+import { ApiModule } from '@api/api.module';
+import { AuthController } from '@api/controllers/auth.controller';
 
 @Module({
   imports: [

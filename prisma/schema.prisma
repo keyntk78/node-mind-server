@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                 String          @id @default(uuid()) @db.Uuid
+  email              String          @unique @db.VarChar(255)
+  passwordHash       String?         @map("password_hash") @db.VarChar(255)
+  isActive           Boolean         @default(true) @map("is_active")
+  isVerified         Boolean         @default(false) @map("is_verified")
+  mfaEnabled         Boolean         @default(false) @map("mfa_enabled")
+  mfaSecretEncrypted String?         @map("mfa_secret_encrypted")
+  lastLoginAt        DateTime?       @map("last_login_at") @db.Timestamptz(6)
+  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  profile            Profile?
+  socialAccounts     SocialAccount[]
+
+  @@map("users")
+}
+
+model SocialAccount {
+  id                 String   @id @default(uuid()) @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  provider           String   @db.VarChar(50)
+  providerExternalId String   @map("provider_external_id") @db.VarChar(255)
+  email              String?  @db.VarChar(255)
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerExternalId], map: "social_accounts_provider_external_id_key")
+  @@index([userId], map: "idx_social_accounts_user")
+  @@map("social_accounts")
+}
+
+model Profile {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @unique @map("user_id") @db.Uuid
+  firstName   String?  @map("first_name") @db.VarChar(100)
+  lastName    String?  @map("last_name") @db.VarChar(100)
+  avatarUrl   String?  @map("avatar_url")
+  phoneNumber String?  @map("phone_number") @db.VarChar(20)
+  bio         String?
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
