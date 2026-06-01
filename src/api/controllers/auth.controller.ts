@@ -1,8 +1,10 @@
 import { LoggingInterceptor } from '@common/interceptors/logging.interceptor';
 import { ResponseService } from '@common/services/response.service';
 import { Body, Controller, Post, UseInterceptors } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
+import { RegisterCommand } from '@application/auth/command/register.command';
 import { RegisterRequestDto } from '../dto/auth/request/register-request.dto';
 
 @ApiTags('auth')
@@ -14,7 +16,7 @@ import { RegisterRequestDto } from '../dto/auth/request/register-request.dto';
 @UseInterceptors(LoggingInterceptor)
 export class AuthController {
   constructor(
-    // private readonly commandBus: CommandBus,
+    private readonly commandBus: CommandBus,
     private readonly responseService: ResponseService,
   ) {}
 
@@ -30,18 +32,13 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'User successfully registered.' })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   async register(@Body() registerDto: RegisterRequestDto) {
-    // Map DTO to Command with primitives (API layer responsibility)
-    // const result = await this.commandBus.execute(
-    //   new RegisterCommand(
-    //     registerDto.email,
-    //     registerDto.password,
-    //     registerDto.fullName,
-    //   ),
-    // );
-    const result = {
-      email: registerDto.email,
-      fullName: registerDto.fullName,
-    };
+    const result = await this.commandBus.execute(
+      new RegisterCommand(
+        registerDto.email,
+        registerDto.password,
+        registerDto.fullName,
+      ),
+    );
 
     return this.responseService.created(
       result,

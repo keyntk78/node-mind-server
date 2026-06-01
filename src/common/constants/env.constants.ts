@@ -19,10 +19,10 @@ export const NODE_ENV = process.env.NODE_ENV || 'development';
 // export const DATABASE_SERVICE =
 //   process.env.DATABASE_SERVICE || 'DATABASE_SERVICE';
 
-// // PostgreSQL Constants
-// export const DATABASE_URL =
-//   process.env.DATABASE_URL ||
-//   'postgresql://nestjs_user:nestjs_password@localhost:5432/nestjs_postgres';
+// PostgreSQL Constants
+export const DATABASE_URL =
+  process.env.DATABASE_URL ||
+  'postgresql://postgres:postgres@localhost:5432/node_mind';
 // export const POSTGRES_PORT = parseInt(process.env.POSTGRES_PORT || '5432', 10);
 
 // // Redis Constants
