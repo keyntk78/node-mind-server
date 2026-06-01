@@ -3,8 +3,7 @@ import 'dotenv/config';
 /**
  * This file collects the configuration variables from the environment.
  *
- * Dung chung mot noi de cac service/module khong phai doc truc tiep process.env
- * o khap codebase. This method helps the default value and validates the error variable
+ * It provides a centralized location for accessing environment variables with default values and validation.
  * Better yet, feel free to change the config later.
  */
 
@@ -74,21 +73,21 @@ export const NODE_ENV = process.env.NODE_ENV || 'development';
 // export const APPLE_ANDROID_ADDITIONAL_AUDIENCES =
 //   process.env.APPLE_ANDROID_ADDITIONAL_AUDIENCES;
 
-// Email encryption secrets are required; missing values fail fast during startup.
-if (!process.env.EMAIL_ENCRYPTION_KEY) {
-  throw new Error(
-    'FATAL ERROR: EMAIL_ENCRYPTION_KEY is not defined in environment variables.',
-  );
-}
-if (!process.env.EMAIL_BLIND_INDEX_SECRET) {
-  throw new Error(
-    'FATAL ERROR: EMAIL_BLIND_INDEX_SECRET is not defined in environment variables.',
-  );
-}
+// // Email encryption secrets are required; missing values fail fast during startup.
+// if (!process.env.EMAIL_ENCRYPTION_KEY) {
+//   throw new Error(
+//     'FATAL ERROR: EMAIL_ENCRYPTION_KEY is not defined in environment variables.',
+//   );
+// }
+// if (!process.env.EMAIL_BLIND_INDEX_SECRET) {
+//   throw new Error(
+//     'FATAL ERROR: EMAIL_BLIND_INDEX_SECRET is not defined in environment variables.',
+//   );
+// }
 
-// Export secrets only after validation so other modules can use them directly.
-export const EMAIL_ENCRYPTION_KEY = process.env.EMAIL_ENCRYPTION_KEY;
-export const EMAIL_BLIND_INDEX_SECRET = process.env.EMAIL_BLIND_INDEX_SECRET;
+// // Export secrets only after validation so other modules can use them directly.
+// export const EMAIL_ENCRYPTION_KEY = process.env.EMAIL_ENCRYPTION_KEY;
+// export const EMAIL_BLIND_INDEX_SECRET = process.env.EMAIL_BLIND_INDEX_SECRET;
 
 // // Grafana Constants
 // export const GRAFANA_USER = process.env.GRAFANA_USER || 'admin';
