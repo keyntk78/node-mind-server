@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Node Mind Auth - Onboarding",
-    "description": "Postman collection for implemented auth APIs: register, resend verification OTP, verify email, login.",
+    "name": "Node Mind Auth",
+    "description": "Postman collection for implemented auth APIs: register, resend verification OTP, verify email, login, refresh token, logout.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -186,6 +186,98 @@
               "  const json = pm.response.json();",
               "  pm.expect(json.data.workspace.id).to.be.a(\"string\");",
               "  pm.expect(json.data.roles).to.be.an(\"array\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Refresh Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/refresh",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "refresh"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 200\", function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"stores rotated tokens\", function () {",
+              "  const json = pm.response.json();",
+              "  pm.environment.set(\"accessToken\", json.data.accessToken);",
+              "  pm.environment.set(\"refreshToken\", json.data.refreshToken);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Logout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/logout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "logout"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 200\", function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"logout succeeded\", function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.data.loggedOut).to.eql(true);",
+              "});",
+              "",
+              "pm.test(\"clears stored tokens\", function () {",
+              "  pm.environment.unset(\"accessToken\");",
+              "  pm.environment.unset(\"refreshToken\");",
               "});"
             ]
           }
