@@ -4,6 +4,7 @@ export const WORKSPACE_REPOSITORY = Symbol('WORKSPACE_REPOSITORY');
 
 export interface WorkspaceRepository {
   findBySlug(slug: string): Promise<Workspace | null>;
+  isMember(userId: string, workspaceId: string): Promise<boolean>;
   save(workspace: Workspace): Promise<void>;
   addMember(userWorkspace: UserWorkspace): Promise<void>;
 }

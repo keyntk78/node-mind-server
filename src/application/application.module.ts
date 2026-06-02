@@ -7,6 +7,7 @@ import { RefreshTokenHandler } from './auth/command/handler/refresh-token.handle
 import { RegisterHandler } from './auth/command/handler/register.handler';
 import { ResendVerificationOtpHandler } from './auth/command/handler/resend-verification-otp.handler';
 import { VerifyEmailHandler } from './auth/command/handler/verify-email.handler';
+import { CreatePageHandler } from './notes/command/handler/create-page.handler';
 
 const commandHandlers = [
   LoginHandler,
@@ -15,6 +16,7 @@ const commandHandlers = [
   RegisterHandler,
   VerifyEmailHandler,
   ResendVerificationOtpHandler,
+  CreatePageHandler,
 ];
 
 @Module({

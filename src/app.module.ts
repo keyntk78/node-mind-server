@@ -8,6 +8,7 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ApiModule } from '@api/api.module';
 import { AuthController } from '@api/controllers/auth.controller';
+import { PagesController } from '@api/controllers/pages.controller';
 
 @Module({
   imports: [
@@ -52,6 +53,6 @@ import { AuthController } from '@api/controllers/auth.controller';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggerMiddleware).forRoutes(AuthController);
+    consumer.apply(LoggerMiddleware).forRoutes(AuthController, PagesController);
   }
 }
