@@ -52,6 +52,14 @@ export const JWT_REFRESH_EXPIRES_IN_SECONDS = parseInt(
   10,
 );
 
+// Auth Constants
+if (!process.env.AUTH_DUMMY_PASSWORD_HASH) {
+  throw new Error(
+    'FATAL ERROR: AUTH_DUMMY_PASSWORD_HASH is not defined in environment variables.',
+  );
+}
+export const AUTH_DUMMY_PASSWORD_HASH = process.env.AUTH_DUMMY_PASSWORD_HASH;
+
 // // Google OAuth Constants (Web)
 // export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 // export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;

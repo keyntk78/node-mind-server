@@ -3,7 +3,7 @@
 > **Service:** Auth Service
 > **Base URL:** `/api/v1/auth`
 > **Content-Type:** `application/json`
-> **Current scope:** Register, verify email, resend verification OTP.
+> **Current scope:** Register, verify email, resend verification OTP, login.
 
 ---
 
@@ -29,7 +29,7 @@ Các nguyên tắc chính:
 | Onboarding | Register | POST | `/api/v1/auth/register` | Implemented | [01-register-api.md](./01-register-api.md) |
 | Onboarding | Verify Email | POST | `/api/v1/auth/verify-email` | Implemented | [02-verify-email-api.md](./02-verify-email-api.md) |
 | Onboarding | Resend Verification OTP | POST | `/api/v1/auth/resend-verification-otp` | Implemented | [03-resend-verification-otp-api.md](./03-resend-verification-otp-api.md) |
-| Authentication | Login | POST | `/api/v1/auth/login` | Planned | TBD |
+| Authentication | Login | POST | `/api/v1/auth/login` | Implemented | [04-login-api.md](./04-login-api.md) |
 | Authentication | Refresh Token | POST | `/api/v1/auth/refresh` | Planned | TBD |
 | Authentication | Logout | POST | `/api/v1/auth/logout` | Planned | TBD |
 | Authentication | Logout All | POST | `/api/v1/auth/logout-all` | Planned | TBD |
@@ -191,9 +191,9 @@ Status: Done
 
 ### Phase 2: Login & Session
 
-Status: Next
+Status: In Progress
 
-1. `POST /api/v1/auth/login`
+1. `POST /api/v1/auth/login` - Done.
 2. `POST /api/v1/auth/refresh`
 3. `POST /api/v1/auth/logout`
 4. `POST /api/v1/auth/logout-all`
@@ -250,4 +250,5 @@ Status: Planned
 | [01-register-api.md](./01-register-api.md) | Spec chi tiết register |
 | [02-verify-email-api.md](./02-verify-email-api.md) | Spec chi tiết verify email |
 | [03-resend-verification-otp-api.md](./03-resend-verification-otp-api.md) | Spec chi tiết resend OTP |
+| [04-login-api.md](./04-login-api.md) | Plan chi tiết login |
 | [database.md](./database.md) | Database và Redis strategy |

@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Node Mind Auth - Onboarding",
-    "description": "Postman collection for implemented auth onboarding APIs: register, verify email, resend verification OTP.",
+    "description": "Postman collection for implemented auth APIs: register, resend verification OTP, verify email, login.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -136,6 +136,56 @@
               "pm.test(\"user is verified\", function () {",
               "  const json = pm.response.json();",
               "  pm.expect(json.data.user.isVerified).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"deviceInfo\": \"Postman local\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "login"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 200\", function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"stores login tokens\", function () {",
+              "  const json = pm.response.json();",
+              "  pm.environment.set(\"accessToken\", json.data.accessToken);",
+              "  pm.environment.set(\"refreshToken\", json.data.refreshToken);",
+              "});",
+              "",
+              "pm.test(\"returns workspace context\", function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.data.workspace.id).to.be.a(\"string\");",
+              "  pm.expect(json.data.roles).to.be.an(\"array\");",
               "});"
             ]
           }
