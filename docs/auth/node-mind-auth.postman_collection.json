@@ -1,0 +1,180 @@
+{
+  "info": {
+    "name": "Node Mind Auth - Onboarding",
+    "description": "Postman collection for implemented auth onboarding APIs: register, verify email, resend verification OTP.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"firstName\": \"{{firstName}}\",\n  \"lastName\": \"{{lastName}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "register"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 201\", function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"returns unverified user\", function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.data.email).to.eql(pm.environment.get(\"email\"));",
+              "  pm.expect(json.data.isVerified).to.eql(false);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Resend Verification OTP",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/resend-verification-otp",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "resend-verification-otp"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 200\", function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"returns OTP ttl\", function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.data.email).to.eql(pm.environment.get(\"email\"));",
+              "  pm.expect(json.data.expiresIn).to.eql(300);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Verify Email",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"otp\": \"{{otp}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/verify-email",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "verify-email"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 200\", function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"stores tokens\", function () {",
+              "  const json = pm.response.json();",
+              "  pm.environment.set(\"accessToken\", json.data.accessToken);",
+              "  pm.environment.set(\"refreshToken\", json.data.refreshToken);",
+              "});",
+              "",
+              "pm.test(\"user is verified\", function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.data.user.isVerified).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1/auth"
+    },
+    {
+      "key": "email",
+      "value": "user@example.com"
+    },
+    {
+      "key": "password",
+      "value": "Password123!"
+    },
+    {
+      "key": "firstName",
+      "value": "Nguyen Van"
+    },
+    {
+      "key": "lastName",
+      "value": "A"
+    },
+    {
+      "key": "otp",
+      "value": "123456"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    }
+  ]
+}

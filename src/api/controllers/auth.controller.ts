@@ -1,4 +1,5 @@
 import { RegisterCommand } from '@application/auth/command/register.command';
+import { ResendVerificationOtpCommand } from '@application/auth/command/resend-verification-otp.command';
 import { VerifyEmailCommand } from '@application/auth/command/verify-email.command';
 import { LoggingInterceptor } from '@common/interceptors/logging.interceptor';
 import { ResponseService } from '@common/services/response.service';
@@ -7,6 +8,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { RegisterRequestDto } from '../dto/auth/request/register-request.dto';
+import { ResendVerificationOtpRequestDto } from '../dto/auth/request/resend-verification-otp-request.dto';
 import { VerifyEmailRequestDto } from '../dto/auth/request/verify-email-request.dto';
 
 @ApiTags('auth')
@@ -67,5 +69,26 @@ export class AuthController {
     );
 
     return this.responseService.success('Email verified successfully', result);
+  }
+
+  /**
+   * Resend verification OTP
+   * api/v1/auth/resend-verification-otp
+   * @param resendOtpDto DTO containing email
+   * @returns Normalized email and OTP expiration time
+   */
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @Post('resend-verification-otp')
+  @ApiOperation({ summary: 'Resend verification OTP' })
+  @ApiResponse({ status: 200, description: 'Verification OTP resent.' })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  async resendVerificationOtp(
+    @Body() resendOtpDto: ResendVerificationOtpRequestDto,
+  ) {
+    const result = await this.commandBus.execute(
+      new ResendVerificationOtpCommand(resendOtpDto.email),
+    );
+
+    return this.responseService.success('Verification OTP resent', result);
   }
 }
