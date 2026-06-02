@@ -18,7 +18,8 @@ Các nguyên tắc chính:
 3. OTP lưu Redis với TTL 300 giây và không trả OTP trong response.
 4. Verify email thành công mới tạo workspace mặc định và cấp token.
 5. Các response dùng format chuẩn của `ResponseService`.
-6. Các API chưa implement phải ghi rõ trạng thái `Planned`, không mô tả như đã sẵn sàng production.
+6. Logout yêu cầu Bearer access token và refresh token cùng user để invalid đúng session.
+7. Các API chưa implement phải ghi rõ trạng thái `Planned`, không mô tả như đã sẵn sàng production.
 
 ---
 

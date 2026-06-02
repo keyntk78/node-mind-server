@@ -9,7 +9,7 @@
 | Key | Value |
 |-----|-------|
 | Base URL | `/api/v1/auth` |
-| Auth hiện tại | Public cho 6 API onboarding/login/refresh/logout |
+| Auth hiện tại | Onboarding/login/refresh public; logout yêu cầu Bearer access token |
 | Content-Type | `application/json` |
 | OTP TTL | 300 giây |
 | Local Mail UI | `http://localhost:8025` |
@@ -25,7 +25,7 @@
 | 3 | Resend Verification OTP | POST | `/api/v1/auth/resend-verification-otp` | Public | Implemented | [03-resend-verification-otp-api.md](./03-resend-verification-otp-api.md) |
 | 4 | Login | POST | `/api/v1/auth/login` | Public | Implemented | [04-login-api.md](./04-login-api.md) |
 | 5 | Refresh Token | POST | `/api/v1/auth/refresh` | Public refresh token | Implemented | [05-refresh-token-api.md](./05-refresh-token-api.md) |
-| 6 | Logout | POST | `/api/v1/auth/logout` | Public refresh token | Implemented | [06-logout-api.md](./06-logout-api.md) |
+| 6 | Logout | POST | `/api/v1/auth/logout` | Bearer access token + refresh token | Implemented | [06-logout-api.md](./06-logout-api.md) |
 
 ---
 
@@ -58,7 +58,7 @@ sequenceDiagram
     C->>API: POST /refresh
     API-->>C: 200 rotated tokens
 
-    C->>API: POST /logout
+    C->>API: POST /logout + Bearer token
     API-->>C: 200 loggedOut=true
 ```
 
@@ -84,7 +84,7 @@ pnpm start:dev
 6. If OTP expired, call `POST /api/v1/auth/resend-verification-otp`.
 7. Call `POST /api/v1/auth/login`.
 8. Call `POST /api/v1/auth/refresh` with the latest `refreshToken`.
-9. Call `POST /api/v1/auth/logout` with the latest `refreshToken`.
+9. Call `POST /api/v1/auth/logout` with `Authorization: Bearer <accessToken>` and the latest `refreshToken`.
 
 ---
 

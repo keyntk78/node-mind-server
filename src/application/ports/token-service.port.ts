@@ -20,9 +20,19 @@ export type RefreshTokenPayload = {
   exp?: number;
 };
 
+export type AccessTokenPayload = {
+  sub: string;
+  email: string;
+  workspaceId: string;
+  roles: string[];
+  iat?: number;
+  exp?: number;
+};
+
 export interface TokenService {
   generateAccessToken(input: GenerateAccessTokenInput): Promise<string>;
   generateRefreshToken(input: GenerateRefreshTokenInput): Promise<string>;
+  verifyAccessToken(token: string): Promise<AccessTokenPayload>;
   verifyRefreshToken(token: string): Promise<RefreshTokenPayload>;
   hashToken(token: string): string;
   getAccessTokenExpiresInSeconds(): number;

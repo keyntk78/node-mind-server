@@ -11,6 +11,10 @@
         "method": "POST",
         "header": [
           {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
             "key": "Content-Type",
             "value": "application/json"
           }

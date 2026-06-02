@@ -28,7 +28,12 @@ export class LogoutHandler implements ICommandHandler<LogoutCommand> {
     const session =
       await this.sessionRepository.findByRefreshTokenHash(refreshTokenHash);
 
-    if (!session || session.userId !== payload.sub || session.isExpired()) {
+    if (
+      !session ||
+      session.userId !== payload.sub ||
+      session.userId !== command.currentUserId ||
+      session.isExpired()
+    ) {
       throw new InvalidRefreshTokenException();
     }
 

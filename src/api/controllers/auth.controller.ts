@@ -4,11 +4,25 @@ import { RefreshTokenCommand } from '@application/auth/command/refresh-token.com
 import { RegisterCommand } from '@application/auth/command/register.command';
 import { ResendVerificationOtpCommand } from '@application/auth/command/resend-verification-otp.command';
 import { VerifyEmailCommand } from '@application/auth/command/verify-email.command';
+import { CurrentUserId } from '@common/decorators/current-user.decorator';
+import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { LoggingInterceptor } from '@common/interceptors/logging.interceptor';
 import { ResponseService } from '@common/services/response.service';
-import { Body, Controller, Post, Req, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Req,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 import { LoginRequestDto } from '../dto/auth/request/login-request.dto';
@@ -157,13 +171,21 @@ export class AuthController {
    */
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout current session' })
   @ApiResponse({ status: 200, description: 'Logout successfully.' })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
-  @ApiResponse({ status: 401, description: 'Invalid refresh token.' })
-  async logout(@Body() logoutDto: LogoutRequestDto) {
+  @ApiResponse({
+    status: 401,
+    description: 'Missing/invalid bearer token or invalid refresh token.',
+  })
+  async logout(
+    @Body() logoutDto: LogoutRequestDto,
+    @CurrentUserId() currentUserId: string,
+  ) {
     const result = await this.commandBus.execute(
-      new LogoutCommand(logoutDto.refreshToken),
+      new LogoutCommand(logoutDto.refreshToken, currentUserId),
     );
 
     return this.responseService.success('Logout successfully', result);

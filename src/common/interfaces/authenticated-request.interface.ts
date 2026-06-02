@@ -15,7 +15,11 @@ export interface JwtPayload {
   // Email of the currently authenticated user.
   email: string;
 
-  // roles: Role[]; // Role list if the app enables role-based access control.
+  // Workspace selected when the access token was issued.
+  workspaceId?: string;
+
+  // Role list if the app enables role-based access control.
+  roles?: string[];
 
   // Issued at: token creation time as a Unix timestamp.
   iat?: number;

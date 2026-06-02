@@ -5,6 +5,7 @@ import {
   JWT_SECRET,
 } from '@common/constants/env.constants';
 import {
+  type AccessTokenPayload,
   type GenerateAccessTokenInput,
   type GenerateRefreshTokenInput,
   type RefreshTokenPayload,
@@ -49,6 +50,34 @@ export class JwtTokenService implements TokenService {
     );
   }
 
+  async verifyAccessToken(token: string): Promise<AccessTokenPayload> {
+    const payload = await this.jwtService.verifyAsync<Record<string, unknown>>(
+      token,
+      {
+        secret: JWT_SECRET,
+      },
+    );
+
+    if (
+      typeof payload.sub !== 'string' ||
+      typeof payload.email !== 'string' ||
+      typeof payload.workspaceId !== 'string' ||
+      !Array.isArray(payload.roles) ||
+      !payload.roles.every((role) => typeof role === 'string')
+    ) {
+      throw new Error('Invalid access token payload.');
+    }
+
+    return {
+      sub: payload.sub,
+      email: payload.email,
+      workspaceId: payload.workspaceId,
+      roles: payload.roles,
+      iat: typeof payload.iat === 'number' ? payload.iat : undefined,
+      exp: typeof payload.exp === 'number' ? payload.exp : undefined,
+    };
+  }
+
   async verifyRefreshToken(token: string): Promise<RefreshTokenPayload> {
     const payload = await this.jwtService.verifyAsync<Record<string, unknown>>(
       token,
@@ -83,8 +112,6 @@ export class JwtTokenService implements TokenService {
   }
 
   getRefreshTokenExpiresAt(now = new Date()): Date {
-    return new Date(
-      now.getTime() + JWT_REFRESH_EXPIRES_IN_SECONDS * 1000,
-    );
+    return new Date(now.getTime() + JWT_REFRESH_EXPIRES_IN_SECONDS * 1000);
   }
 }

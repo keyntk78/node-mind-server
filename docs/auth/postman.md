@@ -343,6 +343,7 @@ Ghi chú: refresh token được rotate mỗi lần gọi. Sau request này, lu�
 
 ```http
 POST {{baseUrl}}/logout
+Authorization: Bearer {{accessToken}}
 ```
 
 Body:

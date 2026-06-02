@@ -1,7 +1,7 @@
 # 06 — Logout API Plan
 
 > **API:** `POST /api/v1/auth/logout`
-> **Auth:** Public với refresh token hợp lệ
+> **Auth:** Bearer access token + refresh token hợp lệ
 > **Status:** Implemented
 > **Mục tiêu:** Đăng xuất một phiên hiện tại bằng cách invalid refresh token tương ứng trong `user_sessions`.
 
@@ -9,19 +9,20 @@
 
 ## Tổng Quan
 
-API logout dùng refresh token để xác định session cần đăng xuất. Server verify refresh token, hash raw token, tìm session đang lưu trong DB, sau đó xóa session đó.
+API logout yêu cầu user đang đăng nhập bằng `Authorization: Bearer <accessToken>` và dùng refresh token để xác định session cần đăng xuất. Server verify access token, verify refresh token, hash raw refresh token, tìm session đang lưu trong DB, kiểm tra session thuộc cùng user đang đăng nhập, sau đó xóa session đó.
 
 Flow hiện tại:
 
-1. Client gửi `refreshToken`.
-2. Validate request body.
-3. Verify JWT refresh token bằng `JWT_REFRESH_SECRET`.
-4. Kiểm tra payload có `sub`, `jti`, và `type = refresh`.
-5. Hash raw refresh token bằng `TokenService.hashToken()`.
-6. Tìm `user_sessions` theo `refreshTokenHash`.
-7. Kiểm tra session tồn tại, đúng `userId`, và chưa hết hạn.
-8. Xóa session khỏi `user_sessions`.
-9. Trả trạng thái logout thành công.
+1. Client gửi `Authorization: Bearer <accessToken>` và `refreshToken`.
+2. Verify JWT access token bằng `JWT_SECRET`.
+3. Validate request body.
+4. Verify JWT refresh token bằng `JWT_REFRESH_SECRET`.
+5. Kiểm tra payload có `sub`, `jti`, và `type = refresh`.
+6. Hash raw refresh token bằng `TokenService.hashToken()`.
+7. Tìm `user_sessions` theo `refreshTokenHash`.
+8. Kiểm tra session tồn tại, đúng refresh token `sub`, đúng access token user, và chưa hết hạn.
+9. Xóa session khỏi `user_sessions`.
+10. Trả trạng thái logout thành công.
 
 Sau khi logout thành công, refresh token đó không còn dùng được cho `POST /api/v1/auth/refresh`.
 
@@ -37,10 +38,11 @@ sequenceDiagram
     participant Tok as TokenService
     participant DB as PostgreSQL
 
-    C->>Ctrl: POST /api/v1/auth/logout
+    C->>Ctrl: POST /api/v1/auth/logout + Bearer access token
+    Note over Ctrl: JwtAuthGuard verifies access token
     Note over Ctrl: Validate LogoutRequestDto
 
-    Ctrl->>H: LogoutCommand(refreshToken)
+    Ctrl->>H: LogoutCommand(refreshToken, currentUserId)
     H->>Tok: verifyRefreshToken(refreshToken)
 
     alt token invalid or expired
@@ -51,7 +53,7 @@ sequenceDiagram
     H->>H: hashToken(refreshToken)
     H->>DB: SELECT user_sessions WHERE refresh_token_hash = $1
 
-    alt session not found, mismatched, or expired
+    alt session not found, mismatched user, or expired
         H-->>Ctrl: InvalidRefreshTokenException
         Ctrl-->>C: 401 INVALID_REFRESH_TOKEN
     end
@@ -75,7 +77,7 @@ sequenceDiagram
 |-------|------|----------|------|
 | `refreshToken` | string | Yes | `@IsString()`, `@IsNotEmpty()` |
 
-Endpoint này không dùng access token guard ở phase hiện tại. Client gửi refresh token trong body giống refresh token API.
+Endpoint này yêu cầu `Authorization: Bearer <accessToken>`. Refresh token vẫn gửi trong body để server xóa đúng session. Nếu access token thiếu/sai/hết hạn, API trả `401 AUTHENTICATION_ERROR`. Nếu refresh token không hợp lệ hoặc không thuộc cùng user với access token, API trả `401 INVALID_REFRESH_TOKEN`.
 
 ---
 
@@ -114,12 +116,13 @@ Sau đó `ResponseInterceptor` gắn thêm `path` và `method`.
 | # | File | Change |
 |---|------|--------|
 | 1 | `logout-request.dto.ts` | DTO request body |
-| 2 | `logout.command.ts` | Command nhận raw refresh token |
-| 3 | `logout.handler.ts` | Handler verify token, session check, xóa session |
-| 4 | `session-repository.interface.ts` | Thêm `deleteById()` |
-| 5 | `prisma-session.repository.ts` | Implement xóa session theo id |
-| 6 | `application.module.ts` | Register `LogoutHandler` |
-| 7 | `auth.controller.ts` | Thêm `@Post('logout')` |
+| 2 | `jwt-auth.guard.ts` | Guard verify Bearer access token |
+| 3 | `logout.command.ts` | Command nhận raw refresh token và current user id |
+| 4 | `logout.handler.ts` | Handler verify token, session check, xóa session |
+| 5 | `session-repository.interface.ts` | Thêm `deleteById()` |
+| 6 | `prisma-session.repository.ts` | Implement xóa session theo id |
+| 7 | `application.module.ts` | Register `LogoutHandler` |
+| 8 | `auth.controller.ts` | Thêm `@Post('logout')` và `@UseGuards(JwtAuthGuard)` |
 
 ---
 
@@ -144,15 +147,18 @@ Phase hiện tại xóa session trực tiếp. Khi cần audit trail hoặc logo
 
 ## 6. Handler Flow Chi Tiết
 
-1. Gọi `tokenService.verifyRefreshToken(command.refreshToken)`.
-2. Nếu verify fail, trả `401 INVALID_REFRESH_TOKEN`.
-3. Hash raw token.
-4. Tìm session theo hash.
-5. Nếu session không tồn tại, trả `401 INVALID_REFRESH_TOKEN`.
-6. Nếu `session.userId !== payload.sub`, trả `401 INVALID_REFRESH_TOKEN`.
-7. Nếu session hết hạn, trả `401 INVALID_REFRESH_TOKEN`.
-8. Gọi `sessionRepository.deleteById(session.id)`.
-9. Trả `{ loggedOut: true }`.
+1. Guard verify Bearer access token và gán `request.user`.
+2. Controller truyền `currentUserId` từ access token vào command.
+3. Gọi `tokenService.verifyRefreshToken(command.refreshToken)`.
+4. Nếu verify fail, trả `401 INVALID_REFRESH_TOKEN`.
+5. Hash raw token.
+6. Tìm session theo hash.
+7. Nếu session không tồn tại, trả `401 INVALID_REFRESH_TOKEN`.
+8. Nếu `session.userId !== payload.sub`, trả `401 INVALID_REFRESH_TOKEN`.
+9. Nếu `session.userId !== command.currentUserId`, trả `401 INVALID_REFRESH_TOKEN`.
+10. Nếu session hết hạn, trả `401 INVALID_REFRESH_TOKEN`.
+11. Gọi `sessionRepository.deleteById(session.id)`.
+12. Trả `{ loggedOut: true }`.
 
 ---
 
@@ -161,10 +167,11 @@ Phase hiện tại xóa session trực tiếp. Khi cần audit trail hoặc logo
 | HTTP | Code | Trường hợp |
 |------|------|------------|
 | 400 | `VALIDATION_ERROR` | Body thiếu hoặc sai `refreshToken` |
-| 401 | `INVALID_REFRESH_TOKEN` | JWT invalid, expired, sai type, session không tồn tại, session expired, hoặc token đã logout |
+| 401 | `AUTHENTICATION_ERROR` | Bearer access token thiếu, sai format, invalid, hoặc hết hạn |
+| 401 | `INVALID_REFRESH_TOKEN` | JWT invalid, expired, sai type, session không tồn tại, session expired, token đã logout, hoặc refresh token không thuộc user đang đăng nhập |
 | 500 | `INTERNAL_ERROR` | Lỗi ngoài nghiệp vụ |
 
-Không nên phân biệt token invalid với session đã bị logout trong response public. Dùng chung `INVALID_REFRESH_TOKEN`.
+Không nên phân biệt refresh token invalid với session đã bị logout trong response. Dùng chung `INVALID_REFRESH_TOKEN`.
 
 ---
 
@@ -172,7 +179,7 @@ Không nên phân biệt token invalid với session đã bị logout trong resp
 
 1. Không lưu raw refresh token trong DB.
 2. Không lấy `userId` từ request body.
-3. Chỉ logout session khớp với refresh token hash.
+3. Chỉ logout session khớp với refresh token hash và cùng user với Bearer access token.
 4. Logout hiện tại invalid refresh token/session, chưa blacklist access token đang còn hạn.
 5. Client phải xóa access token và refresh token khỏi local storage/cookie sau khi logout thành công.
 
@@ -189,7 +196,9 @@ Không nên phân biệt token invalid với session đã bị logout trong resp
 | T-LO05 | Token type không phải `refresh` | 401 |
 | T-LO06 | Session không tồn tại | 401 |
 | T-LO07 | Session đã hết hạn | 401 |
-| T-LO08 | Logout xong gọi refresh bằng token cũ | 401 |
+| T-LO08 | Thiếu Bearer access token | 401 |
+| T-LO09 | Refresh token thuộc user khác Bearer token | 401 |
+| T-LO10 | Logout xong gọi refresh bằng token cũ | 401 |
 
 ---
 
@@ -197,6 +206,7 @@ Không nên phân biệt token invalid với session đã bị logout trong resp
 
 ```bash
 curl -X POST http://localhost:3000/api/v1/auth/logout \
+  -H "Authorization: Bearer eyJhbGciOi..." \
   -H "Content-Type: application/json" \
   -d '{
     "refreshToken": "eyJhbGciOi..."
