@@ -21,6 +21,7 @@ import { ResponseService } from '../services/response.service';
 const DOMAIN_EXCEPTION_STATUS_MAP: Record<string, HttpStatus> = {
   USER_ALREADY_EXISTS: HttpStatus.CONFLICT,
   USER_NOT_FOUND: HttpStatus.NOT_FOUND,
+  OTP_EXPIRED: HttpStatus.GONE,
   PROFILE_NOT_FOUND: HttpStatus.NOT_FOUND,
   INVALID_CREDENTIALS: HttpStatus.UNAUTHORIZED,
   INVALID_PASSWORD: HttpStatus.BAD_REQUEST,

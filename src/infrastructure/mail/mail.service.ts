@@ -39,7 +39,10 @@ export class MailService {
       to: email,
       subject: 'Verify your Node Mind account',
       text: `Hi ${firstName}, your verification code is ${otp}. This code expires in 5 minutes.`,
-      html: `<p>Hi ${firstName},</p><p>Your verification code is <strong>${otp}</strong>.</p><p>This code expires in 5 minutes.</p>`,
+      html:
+        `<p>Hi ${firstName},</p>` +
+        `<p>Your verification code is <strong>${otp}</strong>.</p>` +
+        '<p>This code expires in 5 minutes.</p>',
     });
   }
 }

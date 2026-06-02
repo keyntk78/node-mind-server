@@ -1,13 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { Profile, User } from '@domain/entities';
 import { UserRepository } from '@domain/interfaces';
 import { ProfilePrismaMapper } from '@infrastructure/database/mappers/profile-prisma.mapper';
 import { UserPrismaMapper } from '@infrastructure/database/mappers/user-prisma.mapper';
+import type { PrismaClientLike } from '@infrastructure/database/prisma-client.type';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 
 @Injectable()
 export class PrismaUserRepository implements UserRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaClientLike) {}
 
   async findByEmail(email: string): Promise<User | null> {
     const user = await this.prisma.user.findUnique({
@@ -40,13 +42,27 @@ export class PrismaUserRepository implements UserRepository {
     const userPersistence = UserPrismaMapper.toPersistence(user);
     const profilePersistence = ProfilePrismaMapper.toPersistence(profile);
 
-    await this.prisma.$transaction([
-      this.prisma.user.create({
-        data: userPersistence,
-      }),
-      this.prisma.profile.create({
-        data: profilePersistence,
-      }),
-    ]);
+    if (typeof (this.prisma as PrismaService).$transaction === 'function') {
+      const prisma = this.prisma as PrismaService;
+
+      await prisma.$transaction([
+        prisma.user.create({
+          data: userPersistence,
+        }),
+        prisma.profile.create({
+          data: profilePersistence,
+        }),
+      ]);
+      return;
+    }
+
+    const transactionClient = this.prisma as Prisma.TransactionClient;
+
+    await transactionClient.user.create({
+      data: userPersistence,
+    });
+    await transactionClient.profile.create({
+      data: profilePersistence,
+    });
   }
 }

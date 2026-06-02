@@ -40,13 +40,17 @@ export const MAIL_FROM =
   process.env.MAIL_FROM || '"Node Mind" <noreply@node-mind.local>';
 
 // // JWT Constants
-// export const JWT_SECRET = process.env.JWT_SECRET || 'your-default-secret';
-// export const JWT_REFRESH_SECRET =
-//   process.env.JWT_REFRESH_SECRET || 'your-default-refresh-secret';
-// export const JWT_EXPIRATION_TIME = (process.env.JWT_EXPIRATION_TIME ??
-//   '3600s') as StringValue;
-// export const JWT_REFRESH_EXPIRATION_TIME = (process.env
-//   .JWT_REFRESH_EXPIRATION_TIME ?? '7d') as StringValue;
+export const JWT_SECRET = process.env.JWT_SECRET || 'your-default-secret';
+export const JWT_REFRESH_SECRET =
+  process.env.JWT_REFRESH_SECRET || 'your-default-refresh-secret';
+export const JWT_ACCESS_EXPIRES_IN_SECONDS = parseInt(
+  process.env.JWT_ACCESS_EXPIRES_IN_SECONDS || '900',
+  10,
+);
+export const JWT_REFRESH_EXPIRES_IN_SECONDS = parseInt(
+  process.env.JWT_REFRESH_EXPIRES_IN_SECONDS || '604800',
+  10,
+);
 
 // // Google OAuth Constants (Web)
 // export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
