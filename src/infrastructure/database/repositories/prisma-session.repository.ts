@@ -16,4 +16,30 @@ export class PrismaSessionRepository implements SessionRepository {
       data: persistence,
     });
   }
+
+  async findByRefreshTokenHash(hash: string): Promise<UserSession | null> {
+    const session = await this.prisma.userSession.findFirst({
+      where: {
+        refreshTokenHash: hash,
+      },
+    });
+
+    return session ? UserSessionPrismaMapper.toDomain(session) : null;
+  }
+
+  async rotateRefreshToken(
+    sessionId: string,
+    refreshTokenHash: string,
+    expiresAt: Date,
+  ): Promise<void> {
+    await this.prisma.userSession.update({
+      where: {
+        id: sessionId,
+      },
+      data: {
+        refreshTokenHash,
+        expiresAt,
+      },
+    });
+  }
 }

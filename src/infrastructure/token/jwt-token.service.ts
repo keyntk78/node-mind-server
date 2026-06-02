@@ -7,6 +7,7 @@ import {
 import {
   type GenerateAccessTokenInput,
   type GenerateRefreshTokenInput,
+  type RefreshTokenPayload,
   type TokenService,
 } from '@application/ports/token-service.port';
 import { Injectable } from '@nestjs/common';
@@ -46,6 +47,31 @@ export class JwtTokenService implements TokenService {
         expiresIn: JWT_REFRESH_EXPIRES_IN_SECONDS,
       },
     );
+  }
+
+  async verifyRefreshToken(token: string): Promise<RefreshTokenPayload> {
+    const payload = await this.jwtService.verifyAsync<Record<string, unknown>>(
+      token,
+      {
+        secret: JWT_REFRESH_SECRET,
+      },
+    );
+
+    if (
+      typeof payload.sub !== 'string' ||
+      typeof payload.jti !== 'string' ||
+      payload.type !== 'refresh'
+    ) {
+      throw new Error('Invalid refresh token payload.');
+    }
+
+    return {
+      sub: payload.sub,
+      jti: payload.jti,
+      type: 'refresh',
+      iat: typeof payload.iat === 'number' ? payload.iat : undefined,
+      exp: typeof payload.exp === 'number' ? payload.exp : undefined,
+    };
   }
 
   hashToken(token: string): string {

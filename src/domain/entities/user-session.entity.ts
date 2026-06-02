@@ -44,6 +44,19 @@ export class UserSession extends EntityBase<string> {
     return { ...this.props };
   }
 
+  get userId(): string {
+    return this.props.userId;
+  }
+
+  isExpired(now = new Date()): boolean {
+    return this.props.expiresAt <= now;
+  }
+
+  rotateRefreshToken(refreshTokenHash: string, expiresAt: Date): void {
+    this.props.refreshTokenHash = refreshTokenHash;
+    this.props.expiresAt = expiresAt;
+  }
+
   private static cleanOptionalText(value?: string | null): string | null {
     const cleanedValue = value?.trim();
     return cleanedValue ? cleanedValue : null;

@@ -14,6 +14,11 @@ export interface UserRepository {
   findByEmail(email: string): Promise<User | null>;
 
   /**
+   * Finds a user by id.
+   */
+  findById(id: string): Promise<User | null>;
+
+  /**
    * Persists a new or changed user aggregate.
    */
   save(user: User): Promise<void>;
