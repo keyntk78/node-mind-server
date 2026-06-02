@@ -1,4 +1,5 @@
 import { LoginCommand } from '@application/auth/command/login.command';
+import { RefreshTokenCommand } from '@application/auth/command/refresh-token.command';
 import { RegisterCommand } from '@application/auth/command/register.command';
 import { ResendVerificationOtpCommand } from '@application/auth/command/resend-verification-otp.command';
 import { VerifyEmailCommand } from '@application/auth/command/verify-email.command';
@@ -10,6 +11,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 import { LoginRequestDto } from '../dto/auth/request/login-request.dto';
+import { RefreshTokenRequestDto } from '../dto/auth/request/refresh-token-request.dto';
 import { RegisterRequestDto } from '../dto/auth/request/register-request.dto';
 import { ResendVerificationOtpRequestDto } from '../dto/auth/request/resend-verification-otp-request.dto';
 import { VerifyEmailRequestDto } from '../dto/auth/request/verify-email-request.dto';
@@ -122,5 +124,26 @@ export class AuthController {
     );
 
     return this.responseService.success('Login successfully', result);
+  }
+
+  /**
+   * Refresh access token with a valid refresh token
+   * api/v1/auth/refresh
+   * @param refreshTokenDto DTO containing refresh token
+   * @returns New access token and rotated refresh token
+   */
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @Post('refresh')
+  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiResponse({ status: 200, description: 'Token refreshed successfully.' })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  @ApiResponse({ status: 401, description: 'Invalid refresh token.' })
+  @ApiResponse({ status: 429, description: 'Refresh request in progress.' })
+  async refresh(@Body() refreshTokenDto: RefreshTokenRequestDto) {
+    const result = await this.commandBus.execute(
+      new RefreshTokenCommand(refreshTokenDto.refreshToken),
+    );
+
+    return this.responseService.success('Token refreshed successfully', result);
   }
 }

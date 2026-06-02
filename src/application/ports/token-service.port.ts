@@ -12,9 +12,18 @@ export type GenerateRefreshTokenInput = {
   jti: string;
 };
 
+export type RefreshTokenPayload = {
+  sub: string;
+  jti: string;
+  type: 'refresh';
+  iat?: number;
+  exp?: number;
+};
+
 export interface TokenService {
   generateAccessToken(input: GenerateAccessTokenInput): Promise<string>;
   generateRefreshToken(input: GenerateRefreshTokenInput): Promise<string>;
+  verifyRefreshToken(token: string): Promise<RefreshTokenPayload>;
   hashToken(token: string): string;
   getAccessTokenExpiresInSeconds(): number;
   getRefreshTokenExpiresAt(now?: Date): Date;

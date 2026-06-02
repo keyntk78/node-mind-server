@@ -14,4 +14,8 @@ export class UserSessionPrismaMapper {
   static toPersistence(session: UserSession): PrismaUserSessionRecord {
     return session.toPrimitives();
   }
+
+  static toDomain(record: PrismaUserSessionRecord): UserSession {
+    return UserSession.restore(record);
+  }
 }

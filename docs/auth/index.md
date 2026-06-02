@@ -1,6 +1,6 @@
 # Auth API Index
 
-> Danh sách API auth đã triển khai trong code hiện tại.
+> Danh sách API auth đã triển khai và API auth đang được lên kế hoạch.
 
 ---
 
@@ -9,7 +9,7 @@
 | Key | Value |
 |-----|-------|
 | Base URL | `/api/v1/auth` |
-| Auth hiện tại | Public cho 4 API onboarding/login |
+| Auth hiện tại | Public cho 5 API onboarding/login/refresh |
 | Content-Type | `application/json` |
 | OTP TTL | 300 giây |
 | Local Mail UI | `http://localhost:8025` |
@@ -24,6 +24,7 @@
 | 2 | Verify Email | POST | `/api/v1/auth/verify-email` | Public | Implemented | [02-verify-email-api.md](./02-verify-email-api.md) |
 | 3 | Resend Verification OTP | POST | `/api/v1/auth/resend-verification-otp` | Public | Implemented | [03-resend-verification-otp-api.md](./03-resend-verification-otp-api.md) |
 | 4 | Login | POST | `/api/v1/auth/login` | Public | Implemented | [04-login-api.md](./04-login-api.md) |
+| 5 | Refresh Token | POST | `/api/v1/auth/refresh` | Public refresh token | Implemented | [05-refresh-token-api.md](./05-refresh-token-api.md) |
 
 ---
 
@@ -52,6 +53,9 @@ sequenceDiagram
 
     C->>API: POST /login
     API-->>C: 200 tokens, user, workspace, roles
+
+    C->>API: POST /refresh
+    API-->>C: 200 rotated tokens
 ```
 
 ---
@@ -75,6 +79,7 @@ pnpm start:dev
 5. Call `POST /api/v1/auth/verify-email`.
 6. If OTP expired, call `POST /api/v1/auth/resend-verification-otp`.
 7. Call `POST /api/v1/auth/login`.
+8. Call `POST /api/v1/auth/refresh` with the latest `refreshToken`.
 
 ---
 
@@ -86,3 +91,4 @@ pnpm start:dev
 | [postman.md](./postman.md) | Hướng dẫn test 3 API bằng Postman |
 | [node-mind-auth.postman_collection.json](./node-mind-auth.postman_collection.json) | Collection import trực tiếp vào Postman |
 | [database.md](./database.md) | Database, Redis key, auth flow nền |
+| [05-refresh-token-api.md](./05-refresh-token-api.md) | Plan chi tiết refresh token API |
