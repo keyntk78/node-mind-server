@@ -287,7 +287,112 @@ pm.test("returns workspace context", function () {
 
 ---
 
-## 6. Suggested Collection Order
+## 6. Request 5: Refresh Token
+
+```http
+POST {{baseUrl}}/refresh
+```
+
+Body:
+
+```json
+{
+  "refreshToken": "{{refreshToken}}"
+}
+```
+
+Expected status:
+
+```text
+200 OK
+```
+
+Expected response:
+
+```json
+{
+  "message": "Token refreshed successfully",
+  "data": {
+    "accessToken": "eyJhbGciOi...",
+    "refreshToken": "eyJhbGciOi...",
+    "tokenType": "Bearer",
+    "expiresIn": 900
+  }
+}
+```
+
+Postman Tests:
+
+```js
+pm.test("status is 200", function () {
+  pm.response.to.have.status(200);
+});
+
+pm.test("stores rotated tokens", function () {
+  const json = pm.response.json();
+  pm.environment.set("accessToken", json.data.accessToken);
+  pm.environment.set("refreshToken", json.data.refreshToken);
+});
+```
+
+Ghi chú: refresh token được rotate mỗi lần gọi. Sau request này, luôn dùng `refreshToken` mới nhất trong environment.
+
+---
+
+## 7. Request 6: Logout
+
+```http
+POST {{baseUrl}}/logout
+```
+
+Body:
+
+```json
+{
+  "refreshToken": "{{refreshToken}}"
+}
+```
+
+Expected status:
+
+```text
+200 OK
+```
+
+Expected response:
+
+```json
+{
+  "message": "Logout successfully",
+  "data": {
+    "loggedOut": true
+  }
+}
+```
+
+Postman Tests:
+
+```js
+pm.test("status is 200", function () {
+  pm.response.to.have.status(200);
+});
+
+pm.test("logout succeeded", function () {
+  const json = pm.response.json();
+  pm.expect(json.data.loggedOut).to.eql(true);
+});
+
+pm.test("clears stored tokens", function () {
+  pm.environment.unset("accessToken");
+  pm.environment.unset("refreshToken");
+});
+```
+
+Ghi chú: sau logout, refresh token cũ sẽ trả `401 INVALID_REFRESH_TOKEN` nếu dùng lại.
+
+---
+
+## 8. Suggested Collection Order
 
 | Order | Request | Khi nào chạy |
 |-------|---------|--------------|
@@ -295,12 +400,14 @@ pm.test("returns workspace context", function () {
 | 2 | Resend Verification OTP | Khi OTP hết hạn hoặc muốn test resend |
 | 3 | Verify Email | Sau khi lấy OTP mới nhất |
 | 4 | Login | Sau khi user đã verify email |
+| 5 | Refresh Token | Khi muốn test rotate token |
+| 6 | Logout | Khi muốn kết thúc session hiện tại |
 
 Nếu đã verify email thành công, không thể verify lại cùng user. Muốn test lại từ đầu, dùng email mới.
 
 ---
 
-## 7. Local Services Checklist
+## 9. Local Services Checklist
 
 | Service | Command / URL |
 |---------|---------------|
@@ -311,7 +418,7 @@ Nếu đã verify email thành công, không thể verify lại cùng user. Mu�
 
 ---
 
-## 8. Common Errors
+## 10. Common Errors
 
 | Case | Expected |
 |------|----------|
@@ -321,3 +428,5 @@ Nếu đã verify email thành công, không thể verify lại cùng user. Mu�
 | Email sai format | `400 VALIDATION_ERROR` |
 | Login sai email/password | `401 INVALID_CREDENTIALS` |
 | Login khi user chưa verify | `403 ACCOUNT_NOT_READY` |
+| Refresh token invalid/expired | `401 INVALID_REFRESH_TOKEN` |
+| Logout bằng refresh token invalid/expired | `401 INVALID_REFRESH_TOKEN` |

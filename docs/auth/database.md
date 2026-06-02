@@ -308,14 +308,14 @@ Redis được sử dụng cho các tác vụ yêu cầu tốc độ cao và d�
 
 |Bước|Mô tả|
 |---|---|
-|1|**Client gửi Refresh Token**<br>Access Token hết hạn (401) → gửi Refresh Token lên `POST /api/auth/refresh`.|
+|1|**Client gửi Refresh Token**<br>Access Token hết hạn (401) → gửi Refresh Token lên `POST /api/v1/auth/refresh`.|
 |2|**Kiểm tra Refresh Lock**<br>`GET auth:refresh:{userId}`. Nếu tồn tại → 429.|
 |3|**Đặt Lock**<br>`SET auth:refresh:{userId} 1 EX 10 NX`.|
 |4|**Xác thực Refresh Token**<br>Tìm session trong DB, so sánh hash refresh token, kiểm tra `expires_at`.|
 |5|**Token Rotation**<br>Tạo Access Token mới (15 phút, giữ nguyên `workspace_id` trong payload) và Refresh Token mới (7 ngày).|
 |6|**Xóa Lock & Trả về**<br>`DEL auth:refresh:{userId}`. Trả `{access_token, refresh_token}`.|
 
-> Refresh Token không hợp lệ → buộc logout toàn bộ session của user.
+> Refresh Token không hợp lệ → trả `401 INVALID_REFRESH_TOKEN`. Không phân biệt chi tiết token sai, expired, session missing, hoặc token đã bị rotate.
 
 ---
 
@@ -323,10 +323,13 @@ Redis được sử dụng cho các tác vụ yêu cầu tốc độ cao và d�
 
 |Bước|Mô tả|
 |---|---|
-|1|**Client gửi yêu cầu**<br>`DELETE /api/auth/logout` với Access Token trong header.|
-|2|**Blacklist Access Token**<br>`SET auth:blacklist:{jti} 1 EX (token_remaining_ttl)`.|
-|3|**Xóa Session**<br>`DELETE FROM user_sessions WHERE id = {session_id}` (thiết bị hiện tại) hoặc `WHERE user_id = {user_id}` (tất cả thiết bị).|
-|4|**Trả về 200 OK**<br>Client xóa access_token và refresh_token khỏi bộ nhớ/cookie.|
+|1|**Client gửi yêu cầu**<br>`POST /api/v1/auth/logout` với `refreshToken` trong body.|
+|2|**Xác thực Refresh Token**<br>Verify JWT bằng `JWT_REFRESH_SECRET`, kiểm tra payload `sub`, `jti`, `type = refresh`.|
+|3|**Tìm Session**<br>Hash raw refresh token, tìm `user_sessions.refresh_token_hash`, kiểm tra đúng `userId` và chưa hết hạn.|
+|4|**Xóa Session**<br>`DELETE FROM user_sessions WHERE id = {session_id}` cho thiết bị hiện tại.|
+|5|**Trả về 200 OK**<br>Client xóa access_token và refresh_token khỏi bộ nhớ/cookie.|
+
+Phase hiện tại logout chưa blacklist access token đang còn hạn. Khi cần revoke access token tức thời, có thể thêm blacklist key `auth:blacklist:{jti}` với TTL bằng thời gian còn lại của access token.
 
 ---
 

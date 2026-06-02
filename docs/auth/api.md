@@ -3,7 +3,7 @@
 > **Service:** Auth Service
 > **Base URL:** `/api/v1/auth`
 > **Content-Type:** `application/json`
-> **Current scope:** Register, verify email, resend verification OTP, login, refresh token.
+> **Current scope:** Register, verify email, resend verification OTP, login, refresh token, logout.
 
 ---
 
@@ -31,7 +31,7 @@ Các nguyên tắc chính:
 | Onboarding | Resend Verification OTP | POST | `/api/v1/auth/resend-verification-otp` | Implemented | [03-resend-verification-otp-api.md](./03-resend-verification-otp-api.md) |
 | Authentication | Login | POST | `/api/v1/auth/login` | Implemented | [04-login-api.md](./04-login-api.md) |
 | Authentication | Refresh Token | POST | `/api/v1/auth/refresh` | Implemented | [05-refresh-token-api.md](./05-refresh-token-api.md) |
-| Authentication | Logout | POST | `/api/v1/auth/logout` | Planned | TBD |
+| Authentication | Logout | POST | `/api/v1/auth/logout` | Implemented | [06-logout-api.md](./06-logout-api.md) |
 | Authentication | Logout All | POST | `/api/v1/auth/logout-all` | Planned | TBD |
 | Workspace Context | Select Workspace | POST | `/api/v1/auth/select-workspace` | Planned | TBD |
 | Password | Forgot Password | POST | `/api/v1/auth/forgot-password` | Planned | TBD |
@@ -195,7 +195,7 @@ Status: In Progress
 
 1. `POST /api/v1/auth/login` - Done.
 2. `POST /api/v1/auth/refresh` - Done.
-3. `POST /api/v1/auth/logout`
+3. `POST /api/v1/auth/logout` - Done.
 4. `POST /api/v1/auth/logout-all`
 5. Session persistence và refresh-token rotation.
 
@@ -252,4 +252,5 @@ Status: Planned
 | [03-resend-verification-otp-api.md](./03-resend-verification-otp-api.md) | Spec chi tiết resend OTP |
 | [04-login-api.md](./04-login-api.md) | Plan chi tiết login |
 | [05-refresh-token-api.md](./05-refresh-token-api.md) | Plan chi tiết refresh token |
+| [06-logout-api.md](./06-logout-api.md) | Plan chi tiết logout |
 | [database.md](./database.md) | Database và Redis strategy |

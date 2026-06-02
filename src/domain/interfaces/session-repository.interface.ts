@@ -10,4 +10,5 @@ export interface SessionRepository {
     refreshTokenHash: string,
     expiresAt: Date,
   ): Promise<void>;
+  deleteById(sessionId: string): Promise<void>;
 }

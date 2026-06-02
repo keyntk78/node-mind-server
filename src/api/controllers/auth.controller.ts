@@ -1,4 +1,5 @@
 import { LoginCommand } from '@application/auth/command/login.command';
+import { LogoutCommand } from '@application/auth/command/logout.command';
 import { RefreshTokenCommand } from '@application/auth/command/refresh-token.command';
 import { RegisterCommand } from '@application/auth/command/register.command';
 import { ResendVerificationOtpCommand } from '@application/auth/command/resend-verification-otp.command';
@@ -11,6 +12,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 import { LoginRequestDto } from '../dto/auth/request/login-request.dto';
+import { LogoutRequestDto } from '../dto/auth/request/logout-request.dto';
 import { RefreshTokenRequestDto } from '../dto/auth/request/refresh-token-request.dto';
 import { RegisterRequestDto } from '../dto/auth/request/register-request.dto';
 import { ResendVerificationOtpRequestDto } from '../dto/auth/request/resend-verification-otp-request.dto';
@@ -145,5 +147,25 @@ export class AuthController {
     );
 
     return this.responseService.success('Token refreshed successfully', result);
+  }
+
+  /**
+   * Logout the current session by invalidating its refresh token
+   * api/v1/auth/logout
+   * @param logoutDto DTO containing refresh token
+   * @returns Logout status
+   */
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @Post('logout')
+  @ApiOperation({ summary: 'Logout current session' })
+  @ApiResponse({ status: 200, description: 'Logout successfully.' })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  @ApiResponse({ status: 401, description: 'Invalid refresh token.' })
+  async logout(@Body() logoutDto: LogoutRequestDto) {
+    const result = await this.commandBus.execute(
+      new LogoutCommand(logoutDto.refreshToken),
+    );
+
+    return this.responseService.success('Logout successfully', result);
   }
 }
