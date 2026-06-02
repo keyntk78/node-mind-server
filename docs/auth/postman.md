@@ -1,6 +1,6 @@
 # Auth API Postman Guide
 
-> Hướng dẫn tạo Postman collection để test 3 API auth đã triển khai.
+> Hướng dẫn tạo Postman collection để test các API auth đã triển khai.
 
 ---
 
@@ -216,19 +216,91 @@ Ghi chú: nếu user đã verify hoặc email không tồn tại, API vẫn tr�
 
 ---
 
-## 5. Suggested Collection Order
+## 5. Request 4: Login
+
+```http
+POST {{baseUrl}}/login
+```
+
+Body:
+
+```json
+{
+  "email": "{{email}}",
+  "password": "{{password}}",
+  "deviceInfo": "Postman local"
+}
+```
+
+Expected status:
+
+```text
+200 OK
+```
+
+Expected response:
+
+```json
+{
+  "message": "Login successfully",
+  "data": {
+    "accessToken": "eyJhbGciOi...",
+    "refreshToken": "eyJhbGciOi...",
+    "tokenType": "Bearer",
+    "expiresIn": 900,
+    "user": {
+      "id": "user-uuid",
+      "email": "user@example.com",
+      "isVerified": true,
+      "mfaEnabled": false
+    },
+    "workspace": {
+      "id": "workspace-uuid",
+      "name": "Nguyen Van's Workspace",
+      "slug": "nguyen-vans-workspace",
+      "membership": "OWNER"
+    },
+    "roles": ["WORKSPACE_OWNER"]
+  }
+}
+```
+
+Postman Tests:
+
+```js
+pm.test("status is 200", function () {
+  pm.response.to.have.status(200);
+});
+
+pm.test("stores login tokens", function () {
+  const json = pm.response.json();
+  pm.environment.set("accessToken", json.data.accessToken);
+  pm.environment.set("refreshToken", json.data.refreshToken);
+});
+
+pm.test("returns workspace context", function () {
+  const json = pm.response.json();
+  pm.expect(json.data.workspace.id).to.be.a("string");
+  pm.expect(json.data.roles).to.be.an("array");
+});
+```
+
+---
+
+## 6. Suggested Collection Order
 
 | Order | Request | Khi nào chạy |
 |-------|---------|--------------|
 | 1 | Register | Tạo user mới |
 | 2 | Resend Verification OTP | Khi OTP hết hạn hoặc muốn test resend |
 | 3 | Verify Email | Sau khi lấy OTP mới nhất |
+| 4 | Login | Sau khi user đã verify email |
 
 Nếu đã verify email thành công, không thể verify lại cùng user. Muốn test lại từ đầu, dùng email mới.
 
 ---
 
-## 6. Local Services Checklist
+## 7. Local Services Checklist
 
 | Service | Command / URL |
 |---------|---------------|
@@ -239,7 +311,7 @@ Nếu đã verify email thành công, không thể verify lại cùng user. Mu�
 
 ---
 
-## 7. Common Errors
+## 8. Common Errors
 
 | Case | Expected |
 |------|----------|
@@ -247,3 +319,5 @@ Nếu đã verify email thành công, không thể verify lại cùng user. Mu�
 | OTP sai hoặc hết hạn khi verify | `410 OTP_EXPIRED` |
 | OTP không đủ 6 số | `400 VALIDATION_ERROR` |
 | Email sai format | `400 VALIDATION_ERROR` |
+| Login sai email/password | `401 INVALID_CREDENTIALS` |
+| Login khi user chưa verify | `403 ACCOUNT_NOT_READY` |

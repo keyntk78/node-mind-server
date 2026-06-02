@@ -9,7 +9,7 @@
 | Key | Value |
 |-----|-------|
 | Base URL | `/api/v1/auth` |
-| Auth hiện tại | Public cho 3 API onboarding |
+| Auth hiện tại | Public cho 4 API onboarding/login |
 | Content-Type | `application/json` |
 | OTP TTL | 300 giây |
 | Local Mail UI | `http://localhost:8025` |
@@ -23,6 +23,7 @@
 | 1 | Register | POST | `/api/v1/auth/register` | Public | Implemented | [01-register-api.md](./01-register-api.md) |
 | 2 | Verify Email | POST | `/api/v1/auth/verify-email` | Public | Implemented | [02-verify-email-api.md](./02-verify-email-api.md) |
 | 3 | Resend Verification OTP | POST | `/api/v1/auth/resend-verification-otp` | Public | Implemented | [03-resend-verification-otp-api.md](./03-resend-verification-otp-api.md) |
+| 4 | Login | POST | `/api/v1/auth/login` | Public | Implemented | [04-login-api.md](./04-login-api.md) |
 
 ---
 
@@ -48,6 +49,9 @@ sequenceDiagram
     API->>R: SET auth:otp:{email} EX 300
     API->>M: SEND_OTP_EMAIL
     API-->>C: 200 email, expiresIn=300
+
+    C->>API: POST /login
+    API-->>C: 200 tokens, user, workspace, roles
 ```
 
 ---
@@ -70,6 +74,7 @@ pnpm start:dev
 4. Read OTP from Mailpit or Redis.
 5. Call `POST /api/v1/auth/verify-email`.
 6. If OTP expired, call `POST /api/v1/auth/resend-verification-otp`.
+7. Call `POST /api/v1/auth/login`.
 
 ---
 

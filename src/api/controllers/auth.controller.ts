@@ -1,12 +1,15 @@
+import { LoginCommand } from '@application/auth/command/login.command';
 import { RegisterCommand } from '@application/auth/command/register.command';
 import { ResendVerificationOtpCommand } from '@application/auth/command/resend-verification-otp.command';
 import { VerifyEmailCommand } from '@application/auth/command/verify-email.command';
 import { LoggingInterceptor } from '@common/interceptors/logging.interceptor';
 import { ResponseService } from '@common/services/response.service';
-import { Body, Controller, Post, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Post, Req, UseInterceptors } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
+import type { Request } from 'express';
+import { LoginRequestDto } from '../dto/auth/request/login-request.dto';
 import { RegisterRequestDto } from '../dto/auth/request/register-request.dto';
 import { ResendVerificationOtpRequestDto } from '../dto/auth/request/resend-verification-otp-request.dto';
 import { VerifyEmailRequestDto } from '../dto/auth/request/verify-email-request.dto';
@@ -90,5 +93,34 @@ export class AuthController {
     );
 
     return this.responseService.success('Verification OTP resent', result);
+  }
+
+  /**
+   * Login with email and password
+   * api/v1/auth/login
+   * @param loginDto DTO containing email, password, and optional device info
+   * @returns Tokens, user, default workspace, and roles
+   */
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Post('login')
+  @ApiOperation({ summary: 'Login with email and password' })
+  @ApiResponse({ status: 200, description: 'Login successfully.' })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  @ApiResponse({ status: 401, description: 'Invalid email or password.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Account is inactive, unverified, or missing workspace.',
+  })
+  async login(@Body() loginDto: LoginRequestDto, @Req() request: Request) {
+    const result = await this.commandBus.execute(
+      new LoginCommand(
+        loginDto.email,
+        loginDto.password,
+        loginDto.deviceInfo ?? null,
+        request.ip ?? null,
+      ),
+    );
+
+    return this.responseService.success('Login successfully', result);
   }
 }

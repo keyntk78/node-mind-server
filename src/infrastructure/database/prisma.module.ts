@@ -7,8 +7,10 @@ import {
   WORKSPACE_REPOSITORY,
 } from '@domain/interfaces';
 import { AUTH_VERIFICATION_UNIT_OF_WORK } from '@application/ports/auth-verification-unit-of-work.port';
+import { LOGIN_CONTEXT_QUERY } from '@application/ports/login-context-query.port';
 import { PrismaAuthVerificationUnitOfWork } from './prisma-auth-verification-unit-of-work';
 import { PrismaService } from './prisma.service';
+import { PrismaLoginContextQueryProvider } from './queries/prisma-login-context.query';
 import { PrismaProfileRepository } from './repositories/prisma-profile.repository';
 import { PrismaRoleRepository } from './repositories/prisma-role.repository';
 import { PrismaSessionRepository } from './repositories/prisma-session.repository';
@@ -42,6 +44,7 @@ import { PrismaWorkspaceRepository } from './repositories/prisma-workspace.repos
       provide: AUTH_VERIFICATION_UNIT_OF_WORK,
       useClass: PrismaAuthVerificationUnitOfWork,
     },
+    PrismaLoginContextQueryProvider,
   ],
   exports: [
     PrismaService,
@@ -51,6 +54,7 @@ import { PrismaWorkspaceRepository } from './repositories/prisma-workspace.repos
     ROLE_REPOSITORY,
     SESSION_REPOSITORY,
     AUTH_VERIFICATION_UNIT_OF_WORK,
+    LOGIN_CONTEXT_QUERY,
   ],
 })
 export class PrismaModule {}
