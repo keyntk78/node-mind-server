@@ -1,9 +1,15 @@
 import { Page } from '@domain/entities';
-import { PageRepository } from '@domain/interfaces';
+import {
+  PageChildrenByParentQueryParams,
+  PageChildrenItem,
+  PageChildrenQueryParams,
+  PageRepository,
+} from '@domain/interfaces';
 import { PagePrismaMapper } from '@infrastructure/database/mappers/page-prisma.mapper';
 import type { PrismaClientLike } from '@infrastructure/database/prisma-client.type';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { Inject, Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class PrismaPageRepository implements PageRepository {
@@ -46,18 +52,21 @@ export class PrismaPageRepository implements PageRepository {
     return pages.map(PagePrismaMapper.toDomain);
   }
 
-  async findChildren(parentId: string): Promise<Page[]> {
-    const pages = await this.prisma.page.findMany({
-      where: {
-        parentId,
-        isDeleted: false,
-      },
-      orderBy: {
-        orderIndex: 'asc',
-      },
+  async findRootPages(
+    params: PageChildrenQueryParams,
+  ): Promise<PageChildrenItem[]> {
+    return this.findPageChildren({
+      workspaceId: params.workspaceId,
+      parentId: null,
+      limit: params.limit,
+      cursor: params.cursor,
     });
+  }
 
-    return pages.map(PagePrismaMapper.toDomain);
+  async findChildren(
+    params: PageChildrenByParentQueryParams,
+  ): Promise<PageChildrenItem[]> {
+    return this.findPageChildren(params);
   }
 
   async getMaxOrderIndex(
@@ -123,5 +132,84 @@ export class PrismaPageRepository implements PageRepository {
     await this.prisma.page.delete({
       where: { id },
     });
+  }
+
+  private async findPageChildren(params: {
+    workspaceId: string;
+    parentId: string | null;
+    limit: number;
+    cursor?: string;
+  }): Promise<PageChildrenItem[]> {
+    const cursorPage = params.cursor
+      ? await this.prisma.page.findFirst({
+          where: {
+            id: params.cursor,
+            workspaceId: params.workspaceId,
+            parentId: params.parentId,
+            isDeleted: false,
+          },
+          select: {
+            id: true,
+            orderIndex: true,
+          },
+        })
+      : null;
+
+    const cursorWhere: Prisma.PageWhereInput | undefined = cursorPage
+      ? {
+          OR: [
+            { orderIndex: { gt: cursorPage.orderIndex } },
+            {
+              orderIndex: cursorPage.orderIndex,
+              id: { gt: cursorPage.id },
+            },
+          ],
+        }
+      : undefined;
+
+    const pages = await this.prisma.page.findMany({
+      where: {
+        workspaceId: params.workspaceId,
+        parentId: params.parentId,
+        isDeleted: false,
+        ...(cursorWhere ? cursorWhere : {}),
+      },
+      orderBy: [{ orderIndex: 'asc' }, { id: 'asc' }],
+      take: params.limit,
+      select: {
+        id: true,
+        title: true,
+        icon: true,
+        parentId: true,
+        orderIndex: true,
+        updatedAt: true,
+      },
+    });
+
+    if (pages.length === 0) {
+      return [];
+    }
+
+    const pageIds = pages.map((page) => page.id);
+    const parentsWithChildren = await this.prisma.page.groupBy({
+      by: ['parentId'],
+      where: {
+        workspaceId: params.workspaceId,
+        parentId: {
+          in: pageIds,
+        },
+        isDeleted: false,
+      },
+    });
+    const parentIdSet = new Set(
+      parentsWithChildren
+        .map((parent) => parent.parentId)
+        .filter((parentId): parentId is string => Boolean(parentId)),
+    );
+
+    return pages.map((page) => ({
+      ...page,
+      hasChildren: parentIdSet.has(page.id),
+    }));
   }
 }

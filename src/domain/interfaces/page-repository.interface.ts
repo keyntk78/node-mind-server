@@ -2,6 +2,26 @@ import { Page } from '@domain/entities';
 
 export const PAGE_REPOSITORY = Symbol('PAGE_REPOSITORY');
 
+export type PageChildrenQueryParams = {
+  workspaceId: string;
+  limit: number;
+  cursor?: string;
+};
+
+export type PageChildrenByParentQueryParams = PageChildrenQueryParams & {
+  parentId: string;
+};
+
+export type PageChildrenItem = {
+  id: string;
+  title: string;
+  icon: string | null;
+  parentId: string | null;
+  hasChildren: boolean;
+  orderIndex: number;
+  updatedAt: Date;
+};
+
 export interface PageRepository {
   findById(id: string): Promise<Page | null>;
 
@@ -9,7 +29,11 @@ export interface PageRepository {
 
   findByWorkspaceId(workspaceId: string): Promise<Page[]>;
 
-  findChildren(parentId: string): Promise<Page[]>;
+  findRootPages(params: PageChildrenQueryParams): Promise<PageChildrenItem[]>;
+
+  findChildren(
+    params: PageChildrenByParentQueryParams,
+  ): Promise<PageChildrenItem[]>;
 
   getMaxOrderIndex(
     workspaceId: string,

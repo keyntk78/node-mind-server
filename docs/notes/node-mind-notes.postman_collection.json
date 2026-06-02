@@ -1,0 +1,180 @@
+{
+  "info": {
+    "name": "Node Mind Notes",
+    "description": "Postman collection for implemented Notes APIs: create page and get page children for lazy-loaded sidebar tree.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "01 Create Page",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"workspaceId\": \"{{workspaceId}}\",\n  \"parentId\": null,\n  \"title\": \"{{pageTitle}}\",\n  \"icon\": \"{{pageIcon}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/pages",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "pages"
+          ]
+        },
+        "description": "Create a root page. To create a child page, replace parentId null with an existing page id."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 201\", function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"returns created page\", function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.message).to.eql(\"Page created successfully\");",
+              "  pm.expect(json.data.id).to.be.a(\"string\");",
+              "  pm.expect(json.data.workspaceId).to.eql(pm.environment.get(\"workspaceId\"));",
+              "  pm.expect(json.data.title).to.be.a(\"string\");",
+              "  pm.environment.set(\"pageId\", json.data.id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Get Page Children",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/pages/children?workspaceId={{workspaceId}}&parentId={{parentId}}&limit={{limit}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "pages",
+            "children"
+          ],
+          "query": [
+            {
+              "key": "workspaceId",
+              "value": "{{workspaceId}}"
+            },
+            {
+              "key": "parentId",
+              "value": "{{parentId}}",
+              "description": "Use root for root pages, or a page id for child pages."
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            },
+            {
+              "key": "cursor",
+              "value": "{{cursor}}",
+              "disabled": true,
+              "description": "Enable this only when requesting the next page."
+            }
+          ]
+        },
+        "description": "Get root pages or child pages for sidebar lazy loading."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 200\", function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"returns cursor paginated page metadata\", function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.message).to.eql(\"Pages retrieved successfully\");",
+              "  pm.expect(json.data).to.be.an(\"array\");",
+              "  pm.expect(json.meta.limit).to.eql(Number(pm.environment.get(\"limit\")));",
+              "  pm.expect(json.meta.hasMore).to.be.a(\"boolean\");",
+              "  pm.expect(json.meta).to.have.property(\"nextCursor\");",
+              "});",
+              "",
+              "pm.test(\"items contain sidebar fields only\", function () {",
+              "  const json = pm.response.json();",
+              "  if (json.data.length === 0) {",
+              "    return;",
+              "  }",
+              "  const item = json.data[0];",
+              "  pm.expect(item.id).to.be.a(\"string\");",
+              "  pm.expect(item.title).to.be.a(\"string\");",
+              "  pm.expect(item.hasChildren).to.be.a(\"boolean\");",
+              "  pm.expect(item.orderIndex).to.be.a(\"number\");",
+              "  pm.expect(item.updatedAt).to.be.a(\"string\");",
+              "  pm.expect(item).to.not.have.property(\"blocks\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "workspaceId",
+      "value": ""
+    },
+    {
+      "key": "parentId",
+      "value": "root"
+    },
+    {
+      "key": "limit",
+      "value": "50"
+    },
+    {
+      "key": "cursor",
+      "value": ""
+    },
+    {
+      "key": "pageTitle",
+      "value": "Backend"
+    },
+    {
+      "key": "pageIcon",
+      "value": "🧠"
+    },
+    {
+      "key": "pageId",
+      "value": ""
+    }
+  ]
+}

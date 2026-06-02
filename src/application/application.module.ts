@@ -8,6 +8,7 @@ import { RegisterHandler } from './auth/command/handler/register.handler';
 import { ResendVerificationOtpHandler } from './auth/command/handler/resend-verification-otp.handler';
 import { VerifyEmailHandler } from './auth/command/handler/verify-email.handler';
 import { CreatePageHandler } from './notes/command/handler/create-page.handler';
+import { GetPageChildrenHandler } from './notes/query/handler/get-page-children.handler';
 
 const commandHandlers = [
   LoginHandler,
@@ -19,9 +20,11 @@ const commandHandlers = [
   CreatePageHandler,
 ];
 
+const queryHandlers = [GetPageChildrenHandler];
+
 @Module({
   imports: [CqrsModule, InfrastructureModule],
-  providers: [...commandHandlers],
+  providers: [...commandHandlers, ...queryHandlers],
   exports: [CqrsModule],
 })
 export class ApplicationModule {}
