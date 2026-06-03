@@ -20,6 +20,15 @@ export class PrismaBlockRepository implements BlockRepository {
     return block ? this.toDomain(block) : null;
   }
 
+  async findByPageId(pageId: string): Promise<Block[]> {
+    const blocks = await this.prisma.block.findMany({
+      where: { pageId },
+      orderBy: [{ orderIndex: 'asc' }, { createdAt: 'asc' }],
+    });
+
+    return blocks.map((block) => this.toDomain(block));
+  }
+
   async getMaxOrderIndex(pageId: string): Promise<number> {
     const result = await this.prisma.block.aggregate({
       where: { pageId },
@@ -60,6 +69,50 @@ export class PrismaBlockRepository implements BlockRepository {
     });
 
     return this.toDomain(updated);
+  }
+
+  async reorderBlocks(
+    items: {
+      id: string;
+      orderIndex: number;
+    }[],
+  ): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      for (const item of items) {
+        await tx.block.update({
+          where: { id: item.id },
+          data: {
+            orderIndex: item.orderIndex,
+          },
+        });
+      }
+    });
+  }
+
+  async deleteAndReorder(
+    blockId: string,
+    pageId: string,
+    orderIndex: number,
+  ): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.block.delete({
+        where: { id: blockId },
+      });
+
+      await tx.block.updateMany({
+        where: {
+          pageId,
+          orderIndex: {
+            gt: orderIndex,
+          },
+        },
+        data: {
+          orderIndex: {
+            decrement: 1,
+          },
+        },
+      });
+    });
   }
 
   private toDomain(block: {

@@ -1,4 +1,6 @@
 import { CreateBlockCommand } from '@application/block/command/create-block.command';
+import { DeleteBlockCommand } from '@application/block/command/delete-block.command';
+import { ReorderBlocksCommand } from '@application/block/command/reorder-blocks.command';
 import { UpdateBlockCommand } from '@application/block/command/update-block.command';
 import { CurrentUserId } from '@common/decorators/current-user.decorator';
 import { PagesJwtAuthGuard } from '@common/guards/pages-jwt-auth.guard';
@@ -7,6 +9,7 @@ import { ResponseService } from '@common/services/response.service';
 import {
   Body,
   Controller,
+  Delete,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -22,6 +25,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { CreateBlockRequestDto } from '../dto/blocks/request/create-block-request.dto';
+import { ReorderBlocksRequestDto } from '../dto/blocks/request/reorder-blocks-request.dto';
 import { UpdateBlockRequestDto } from '../dto/blocks/request/update-block-request.dto';
 
 @ApiTags('blocks')
@@ -62,6 +66,28 @@ export class BlocksController {
 
     return this.responseService.created(block, 'Block created successfully');
   }
+
+  @Patch('reorder')
+  @ApiOperation({ summary: 'Reorder blocks in a page' })
+  @ApiResponse({ status: 200, description: 'Blocks reordered successfully.' })
+  @ApiResponse({ status: 400, description: 'Validation error.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({ status: 403, description: 'Workspace access denied.' })
+  @ApiResponse({ status: 404, description: 'Page not found.' })
+  async reorder(
+    @Param('pageId', ParseUUIDPipe) pageId: string,
+    @Body() dto: ReorderBlocksRequestDto,
+    @CurrentUserId() currentUserId: string,
+  ) {
+    const result = await this.commandBus.execute(
+      new ReorderBlocksCommand(currentUserId, pageId, dto.blocks),
+    );
+
+    return this.responseService.updated(
+      result,
+      'Blocks reordered successfully',
+    );
+  }
 }
 
 @ApiTags('blocks')
@@ -95,5 +121,22 @@ export class BlockItemsController {
     );
 
     return this.responseService.updated(block, 'Block updated successfully');
+  }
+
+  @Delete(':blockId')
+  @ApiOperation({ summary: 'Delete a block' })
+  @ApiResponse({ status: 200, description: 'Block deleted successfully.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({ status: 403, description: 'Workspace access denied.' })
+  @ApiResponse({ status: 404, description: 'Block or page not found.' })
+  async delete(
+    @Param('blockId', ParseUUIDPipe) blockId: string,
+    @CurrentUserId() currentUserId: string,
+  ) {
+    const result = await this.commandBus.execute(
+      new DeleteBlockCommand(currentUserId, blockId),
+    );
+
+    return this.responseService.success('Block deleted successfully', result);
   }
 }
