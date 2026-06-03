@@ -1,4 +1,4 @@
-import { Page } from '@domain/entities';
+import { Block, Page } from '@domain/entities';
 
 export const PAGE_REPOSITORY = Symbol('PAGE_REPOSITORY');
 
@@ -34,6 +34,8 @@ export interface PageRepository {
   findChildren(
     params: PageChildrenByParentQueryParams,
   ): Promise<PageChildrenItem[]>;
+
+  findBlocksByPageId(pageId: string): Promise<Block[]>;
 
   getMaxOrderIndex(
     workspaceId: string,

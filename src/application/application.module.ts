@@ -1,14 +1,15 @@
+import { InfrastructureModule } from '@infrastructure/infrastructure.module';
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
-import { InfrastructureModule } from '@infrastructure/infrastructure.module';
 import { LoginHandler } from './auth/command/handler/login.handler';
 import { LogoutHandler } from './auth/command/handler/logout.handler';
 import { RefreshTokenHandler } from './auth/command/handler/refresh-token.handler';
 import { RegisterHandler } from './auth/command/handler/register.handler';
 import { ResendVerificationOtpHandler } from './auth/command/handler/resend-verification-otp.handler';
 import { VerifyEmailHandler } from './auth/command/handler/verify-email.handler';
-import { CreatePageHandler } from './notes/command/handler/create-page.handler';
-import { GetPageChildrenHandler } from './notes/query/handler/get-page-children.handler';
+import { CreatePageHandler } from './page/command/handler/create-page.handler';
+import { GetPageChildrenHandler } from './page/query/handler/get-page-children.handler';
+import { GetPageDetailHandler } from './page/query/handler/get-page-detail.handler';
 
 const commandHandlers = [
   LoginHandler,
@@ -20,7 +21,7 @@ const commandHandlers = [
   CreatePageHandler,
 ];
 
-const queryHandlers = [GetPageChildrenHandler];
+const queryHandlers = [GetPageChildrenHandler, GetPageDetailHandler];
 
 @Module({
   imports: [CqrsModule, InfrastructureModule],

@@ -1,4 +1,5 @@
-import { Page } from '@domain/entities';
+import { Block, BlockType, Page } from '@domain/entities';
+import { BlockContent } from '@domain/value-objects/block-content.value-object';
 import {
   PageChildrenByParentQueryParams,
   PageChildrenItem,
@@ -67,6 +68,25 @@ export class PrismaPageRepository implements PageRepository {
     params: PageChildrenByParentQueryParams,
   ): Promise<PageChildrenItem[]> {
     return this.findPageChildren(params);
+  }
+
+  async findBlocksByPageId(pageId: string): Promise<Block[]> {
+    const blocks = await this.prisma.block.findMany({
+      where: { pageId },
+      orderBy: [{ orderIndex: 'asc' }, { createdAt: 'asc' }],
+    });
+
+    return blocks.map((block) =>
+      Block.restore({
+        id: block.id,
+        pageId: block.pageId,
+        type: block.type as BlockType,
+        content: BlockContent.create(block.content as Record<string, unknown>),
+        orderIndex: block.orderIndex,
+        createdAt: block.createdAt,
+        updatedAt: block.updatedAt,
+      }),
+    );
   }
 
   async getMaxOrderIndex(

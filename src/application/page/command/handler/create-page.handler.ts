@@ -1,11 +1,11 @@
-import { CreatePageCommand } from '@application/notes/command/create-page.command';
+import { CreatePageCommand } from '@application/page/command/create-page.command';
 import { Page } from '@domain/entities';
 import {
   PageNotFoundException,
   WorkspaceAccessDeniedException,
 } from '@domain/exceptions';
-import { PAGE_REPOSITORY, WORKSPACE_REPOSITORY } from '@domain/interfaces';
 import type { PageRepository, WorkspaceRepository } from '@domain/interfaces';
+import { PAGE_REPOSITORY, WORKSPACE_REPOSITORY } from '@domain/interfaces';
 import { Inject, Logger } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 

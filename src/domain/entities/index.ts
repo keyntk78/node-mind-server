@@ -1,5 +1,7 @@
 export * from './enums/oauth-provider.enum';
+export * from './enums/block-type.enum';
 export * from './enums/workspace-membership.enum';
+export * from './block.entity';
 export * from './page.entity';
 export * from './profile.entity';
 export * from './role.entity';

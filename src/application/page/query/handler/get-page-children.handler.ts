@@ -1,27 +1,15 @@
-import { GetPageChildrenQuery } from '@application/notes/query/get-page-children.query';
+import { GetPageChildrenResponse } from '@application/page/query/dto/get-page-children-response.dto';
+import { GetPageChildrenQuery } from '@application/page/query/get-page-children.query';
 import { WorkspaceAccessDeniedException } from '@domain/exceptions';
-import type {
-  PageChildrenItem,
-  PageRepository,
-  WorkspaceRepository,
-} from '@domain/interfaces';
+import type { PageRepository, WorkspaceRepository } from '@domain/interfaces';
 import { PAGE_REPOSITORY, WORKSPACE_REPOSITORY } from '@domain/interfaces';
 import { Inject, Logger } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 
-export type GetPageChildrenResult = {
-  data: PageChildrenItem[];
-  meta: {
-    limit: number;
-    hasMore: boolean;
-    nextCursor: string | null;
-  };
-};
-
 @QueryHandler(GetPageChildrenQuery)
 export class GetPageChildrenHandler implements IQueryHandler<
   GetPageChildrenQuery,
-  GetPageChildrenResult
+  GetPageChildrenResponse
 > {
   private readonly logger = new Logger(GetPageChildrenHandler.name);
 
@@ -32,7 +20,7 @@ export class GetPageChildrenHandler implements IQueryHandler<
     private readonly workspaceRepository: WorkspaceRepository,
   ) {}
 
-  async execute(query: GetPageChildrenQuery): Promise<GetPageChildrenResult> {
+  async execute(query: GetPageChildrenQuery): Promise<GetPageChildrenResponse> {
     this.logger.log('[CQRS] GetPageChildrenHandler: retrieving page children');
 
     const hasWorkspaceAccess = await this.workspaceRepository.isMember(

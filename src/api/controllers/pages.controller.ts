@@ -1,5 +1,6 @@
-import { CreatePageCommand } from '@application/notes/command/create-page.command';
-import { GetPageChildrenQuery } from '@application/notes/query/get-page-children.query';
+import { CreatePageCommand } from '@application/page/command/create-page.command';
+import { GetPageChildrenQuery } from '@application/page/query/get-page-children.query';
+import { GetPageDetailQuery } from '@application/page/query/get-page-detail.query';
 import { CurrentUserId } from '@common/decorators/current-user.decorator';
 import { PagesJwtAuthGuard } from '@common/guards/pages-jwt-auth.guard';
 import { LoggingInterceptor } from '@common/interceptors/logging.interceptor';
@@ -8,6 +9,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Query,
   UseGuards,
@@ -64,6 +66,24 @@ export class PagesController {
       result.data,
       result.meta,
     );
+  }
+
+  @Get(':pageId')
+  @ApiOperation({ summary: 'Get page detail' })
+  @ApiResponse({ status: 200, description: 'Page retrieved successfully.' })
+  @ApiResponse({ status: 400, description: 'Validation error.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({ status: 403, description: 'Workspace access denied.' })
+  @ApiResponse({ status: 404, description: 'Page not found.' })
+  async getDetail(
+    @Param('pageId') pageId: string,
+    @CurrentUserId() currentUserId: string,
+  ) {
+    const result = await this.queryBus.execute(
+      new GetPageDetailQuery(currentUserId, pageId),
+    );
+
+    return this.responseService.success('Page retrieved successfully', result);
   }
 
   @Post()
