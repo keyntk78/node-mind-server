@@ -17,7 +17,7 @@ import {
 import { BadRequestException, Inject, Logger } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
-const BLOCK_TYPE_BY_API_VALUE: Record<string, BlockType> = {
+export const BLOCK_TYPE_BY_API_VALUE: Record<string, BlockType> = {
   paragraph: BlockType.PARAGRAPH,
   heading_1: BlockType.HEADING_1,
   heading_2: BlockType.HEADING_2,
@@ -31,7 +31,7 @@ const BLOCK_TYPE_BY_API_VALUE: Record<string, BlockType> = {
   divider: BlockType.DIVIDER,
 };
 
-const API_VALUE_BY_BLOCK_TYPE = Object.fromEntries(
+export const API_VALUE_BY_BLOCK_TYPE = Object.fromEntries(
   Object.entries(BLOCK_TYPE_BY_API_VALUE).map(([apiValue, blockType]) => [
     blockType,
     apiValue,

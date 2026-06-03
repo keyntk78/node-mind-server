@@ -137,6 +137,57 @@
           }
         }
       ]
+    },
+    {
+      "name": "06 Update Block",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"content\": {\n    \"text\": \"Hello Node Mind Updated\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/blocks/{{blockId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "blocks",
+            "{{blockId}}"
+          ]
+        },
+        "description": "Update a block content object. This API does not change pageId or orderIndex."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 200\", function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"returns updated block\", function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.message).to.eql(\"Block updated successfully\");",
+              "  pm.expect(json.data.id).to.eql(pm.environment.get(\"blockId\"));",
+              "  pm.expect(json.data.pageId).to.be.a(\"string\");",
+              "  pm.expect(json.data.type).to.be.a(\"string\");",
+              "  pm.expect(json.data.content).to.be.an(\"object\");",
+              "  pm.expect(json.data.orderIndex).to.be.a(\"number\");",
+              "  pm.expect(json.data.updatedAt).to.be.a(\"string\");",
+              "});"
+            ]
+          }
+        }
+      ]
     }
   ],
   "variable": [
@@ -174,6 +225,10 @@
     },
     {
       "key": "pageId",
+      "value": ""
+    },
+    {
+      "key": "blockId",
       "value": ""
     }
   ]

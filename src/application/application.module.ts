@@ -9,6 +9,7 @@ import { ResendVerificationOtpHandler } from './auth/command/handler/resend-veri
 import { VerifyEmailHandler } from './auth/command/handler/verify-email.handler';
 import { GetCurrentAuthContextHandler } from './auth/query/handler/get-current-auth-context.handler';
 import { CreateBlockHandler } from './block/command/handler/create-block.handler';
+import { UpdateBlockHandler } from './block/command/handler/update-block.handler';
 import { CreatePageHandler } from './page/command/handler/create-page.handler';
 import { UpdatePageMetadataHandler } from './page/command/handler/update-page-metadata.handler';
 import { GetPageChildrenHandler } from './page/query/handler/get-page-children.handler';
@@ -23,6 +24,7 @@ const commandHandlers = [
   ResendVerificationOtpHandler,
   CreatePageHandler,
   CreateBlockHandler,
+  UpdateBlockHandler,
   UpdatePageMetadataHandler,
 ];
 

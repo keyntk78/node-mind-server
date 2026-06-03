@@ -12,6 +12,14 @@ export class PrismaBlockRepository implements BlockRepository {
     @Inject(PrismaService) private readonly prisma: PrismaClientLike,
   ) {}
 
+  async findById(id: string): Promise<Block | null> {
+    const block = await this.prisma.block.findUnique({
+      where: { id },
+    });
+
+    return block ? this.toDomain(block) : null;
+  }
+
   async getMaxOrderIndex(pageId: string): Promise<number> {
     const result = await this.prisma.block.aggregate({
       where: { pageId },
@@ -37,14 +45,40 @@ export class PrismaBlockRepository implements BlockRepository {
       },
     });
 
+    return this.toDomain(created);
+  }
+
+  async updateContent(
+    blockId: string,
+    content: Record<string, unknown>,
+  ): Promise<Block> {
+    const updated = await this.prisma.block.update({
+      where: { id: blockId },
+      data: {
+        content: content as Prisma.InputJsonValue,
+      },
+    });
+
+    return this.toDomain(updated);
+  }
+
+  private toDomain(block: {
+    id: string;
+    pageId: string;
+    type: string;
+    content: Prisma.JsonValue;
+    orderIndex: number;
+    createdAt: Date;
+    updatedAt: Date;
+  }): Block {
     return Block.restore({
-      id: created.id,
-      pageId: created.pageId,
-      type: created.type as BlockType,
-      content: BlockContent.create(created.content as Record<string, unknown>),
-      orderIndex: created.orderIndex,
-      createdAt: created.createdAt,
-      updatedAt: created.updatedAt,
+      id: block.id,
+      pageId: block.pageId,
+      type: block.type as BlockType,
+      content: BlockContent.create(block.content as Record<string, unknown>),
+      orderIndex: block.orderIndex,
+      createdAt: block.createdAt,
+      updatedAt: block.updatedAt,
     });
   }
 }
