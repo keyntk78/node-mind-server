@@ -3,7 +3,7 @@
 > **Service:** Auth Service
 > **Base URL:** `/api/v1/auth`
 > **Content-Type:** `application/json`
-> **Current scope:** Register, verify email, resend verification OTP, login, refresh token, logout.
+> **Current scope:** Register, verify email, resend verification OTP, login, current user, refresh token, logout.
 
 ---
 
@@ -18,7 +18,7 @@ Các nguyên tắc chính:
 3. OTP lưu Redis với TTL 300 giây và không trả OTP trong response.
 4. Verify email thành công mới tạo workspace mặc định và cấp token.
 5. Các response dùng format chuẩn của `ResponseService`.
-6. Logout yêu cầu Bearer access token và refresh token cùng user để invalid đúng session.
+6. Current user và logout yêu cầu Bearer access token.
 7. Các API chưa implement phải ghi rõ trạng thái `Planned`, không mô tả như đã sẵn sàng production.
 
 ---
@@ -33,6 +33,7 @@ Các nguyên tắc chính:
 | Authentication | Login | POST | `/api/v1/auth/login` | Implemented | [04-login-api.md](./04-login-api.md) |
 | Authentication | Refresh Token | POST | `/api/v1/auth/refresh` | Implemented | [05-refresh-token-api.md](./05-refresh-token-api.md) |
 | Authentication | Logout | POST | `/api/v1/auth/logout` | Implemented | [06-logout-api.md](./06-logout-api.md) |
+| Authentication | Current User | GET | `/api/v1/auth/me` | Implemented | [07-current-user-api.md](./07-current-user-api.md) |
 | Authentication | Logout All | POST | `/api/v1/auth/logout-all` | Planned | TBD |
 | Workspace Context | Select Workspace | POST | `/api/v1/auth/select-workspace` | Planned | TBD |
 | Password | Forgot Password | POST | `/api/v1/auth/forgot-password` | Planned | TBD |
@@ -63,6 +64,8 @@ flowchart TD
     L --> M[Assign OWNER role]
     M --> N[Create access and refresh token]
     N --> O[Return tokens + user + workspace]
+    O --> R[Client calls GET /api/v1/auth/me]
+    R --> S[Return user + workspace + roles without tokens]
     G --> P[OTP expired]
     P --> Q[POST /api/v1/auth/resend-verification-otp]
     Q --> D
@@ -177,6 +180,41 @@ Success:
 }
 ```
 
+### 4.4 Current User
+
+```http
+GET /api/v1/auth/me
+Authorization: Bearer <accessToken>
+```
+
+Success:
+
+```json
+{
+  "message": "Current user context",
+  "data": {
+    "user": {
+      "id": "user-uuid",
+      "email": "user@example.com",
+      "isVerified": true,
+      "mfaEnabled": false
+    },
+    "workspace": {
+      "id": "workspace-uuid",
+      "name": "Nguyen Van's Workspace",
+      "slug": "nguyen-vans-workspace",
+      "membership": "OWNER"
+    },
+    "roles": ["WORKSPACE_OWNER"]
+  },
+  "timestamp": "2026-06-03T10:30:00.000Z",
+  "path": "/api/v1/auth/me",
+  "method": "GET"
+}
+```
+
+Response này dùng cùng shape `user`, `workspace`, `roles` với login nhưng không có `accessToken`, `refreshToken`, `tokenType`, hoặc `expiresIn`.
+
 ---
 
 ## 5. Roadmap Đề Xuất
@@ -195,10 +233,11 @@ Status: Done
 Status: In Progress
 
 1. `POST /api/v1/auth/login` - Done.
-2. `POST /api/v1/auth/refresh` - Done.
-3. `POST /api/v1/auth/logout` - Done.
-4. `POST /api/v1/auth/logout-all`
-5. Session persistence và refresh-token rotation.
+2. `GET /api/v1/auth/me` - Done.
+3. `POST /api/v1/auth/refresh` - Done.
+4. `POST /api/v1/auth/logout` - Done.
+5. `POST /api/v1/auth/logout-all`
+6. Session persistence và refresh-token rotation.
 
 ### Phase 3: Workspace Context
 
@@ -254,4 +293,5 @@ Status: Planned
 | [04-login-api.md](./04-login-api.md) | Plan chi tiết login |
 | [05-refresh-token-api.md](./05-refresh-token-api.md) | Plan chi tiết refresh token |
 | [06-logout-api.md](./06-logout-api.md) | Plan chi tiết logout |
+| [07-current-user-api.md](./07-current-user-api.md) | Spec chi tiết current user |
 | [database.md](./database.md) | Database và Redis strategy |

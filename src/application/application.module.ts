@@ -7,6 +7,7 @@ import { RefreshTokenHandler } from './auth/command/handler/refresh-token.handle
 import { RegisterHandler } from './auth/command/handler/register.handler';
 import { ResendVerificationOtpHandler } from './auth/command/handler/resend-verification-otp.handler';
 import { VerifyEmailHandler } from './auth/command/handler/verify-email.handler';
+import { GetCurrentAuthContextHandler } from './auth/query/handler/get-current-auth-context.handler';
 import { CreateBlockHandler } from './block/command/handler/create-block.handler';
 import { CreatePageHandler } from './page/command/handler/create-page.handler';
 import { UpdatePageMetadataHandler } from './page/command/handler/update-page-metadata.handler';
@@ -25,7 +26,11 @@ const commandHandlers = [
   UpdatePageMetadataHandler,
 ];
 
-const queryHandlers = [GetPageChildrenHandler, GetPageDetailHandler];
+const queryHandlers = [
+  GetCurrentAuthContextHandler,
+  GetPageChildrenHandler,
+  GetPageDetailHandler,
+];
 
 @Module({
   imports: [CqrsModule, InfrastructureModule],

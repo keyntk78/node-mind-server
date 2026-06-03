@@ -9,7 +9,7 @@
 | Key | Value |
 |-----|-------|
 | Base URL | `/api/v1/auth` |
-| Auth hiện tại | Onboarding/login/refresh public; logout yêu cầu Bearer access token |
+| Auth hiện tại | Onboarding/login/refresh public; me/logout yêu cầu Bearer access token |
 | Content-Type | `application/json` |
 | OTP TTL | 300 giây |
 | Local Mail UI | `http://localhost:8025` |
@@ -26,6 +26,7 @@
 | 4 | Login | POST | `/api/v1/auth/login` | Public | Implemented | [04-login-api.md](./04-login-api.md) |
 | 5 | Refresh Token | POST | `/api/v1/auth/refresh` | Public refresh token | Implemented | [05-refresh-token-api.md](./05-refresh-token-api.md) |
 | 6 | Logout | POST | `/api/v1/auth/logout` | Bearer access token + refresh token | Implemented | [06-logout-api.md](./06-logout-api.md) |
+| 7 | Current User | GET | `/api/v1/auth/me` | Bearer access token | Implemented | [07-current-user-api.md](./07-current-user-api.md) |
 
 ---
 
@@ -55,6 +56,9 @@ sequenceDiagram
     C->>API: POST /login
     API-->>C: 200 tokens, user, workspace, roles
 
+    C->>API: GET /me + Bearer token
+    API-->>C: 200 user, workspace, roles
+
     C->>API: POST /refresh
     API-->>C: 200 rotated tokens
 
@@ -83,8 +87,9 @@ pnpm start:dev
 5. Call `POST /api/v1/auth/verify-email`.
 6. If OTP expired, call `POST /api/v1/auth/resend-verification-otp`.
 7. Call `POST /api/v1/auth/login`.
-8. Call `POST /api/v1/auth/refresh` with the latest `refreshToken`.
-9. Call `POST /api/v1/auth/logout` with `Authorization: Bearer <accessToken>` and the latest `refreshToken`.
+8. Call `GET /api/v1/auth/me` with `Authorization: Bearer <accessToken>`.
+9. Call `POST /api/v1/auth/refresh` with the latest `refreshToken`.
+10. Call `POST /api/v1/auth/logout` with `Authorization: Bearer <accessToken>` and the latest `refreshToken`.
 
 ---
 
@@ -93,8 +98,9 @@ pnpm start:dev
 | File | Mô tả |
 |------|------|
 | [api.md](./api.md) | Kế hoạch tổng thể và roadmap auth API |
-| [postman.md](./postman.md) | Hướng dẫn test 3 API bằng Postman |
+| [postman.md](./postman.md) | Hướng dẫn test các API auth bằng Postman |
 | [node-mind-auth.postman_collection.json](./node-mind-auth.postman_collection.json) | Collection import trực tiếp vào Postman |
 | [database.md](./database.md) | Database, Redis key, auth flow nền |
 | [05-refresh-token-api.md](./05-refresh-token-api.md) | Plan chi tiết refresh token API |
 | [06-logout-api.md](./06-logout-api.md) | Plan chi tiết logout API |
+| [07-current-user-api.md](./07-current-user-api.md) | Spec chi tiết current user API |

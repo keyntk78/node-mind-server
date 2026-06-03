@@ -13,5 +13,9 @@ export interface LoginContextQuery {
   findDefaultWorkspaceForUser(
     userId: string,
   ): Promise<LoginWorkspaceContext | null>;
+  findWorkspaceForUser(
+    userId: string,
+    workspaceId: string,
+  ): Promise<LoginWorkspaceContext | null>;
   findRoleCodes(userId: string, workspaceId: string): Promise<string[]>;
 }

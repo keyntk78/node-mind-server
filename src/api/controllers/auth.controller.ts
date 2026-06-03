@@ -4,19 +4,26 @@ import { RefreshTokenCommand } from '@application/auth/command/refresh-token.com
 import { RegisterCommand } from '@application/auth/command/register.command';
 import { ResendVerificationOtpCommand } from '@application/auth/command/resend-verification-otp.command';
 import { VerifyEmailCommand } from '@application/auth/command/verify-email.command';
-import { CurrentUserId } from '@common/decorators/current-user.decorator';
+import { GetCurrentAuthContextQuery } from '@application/auth/query/get-current-auth-context.query';
+import {
+  CurrentUser,
+  CurrentUserId,
+} from '@common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
+import type { JwtPayload } from '@common/interfaces/authenticated-request.interface';
 import { LoggingInterceptor } from '@common/interceptors/logging.interceptor';
 import { ResponseService } from '@common/services/response.service';
 import {
   Body,
   Controller,
+  Get,
   Post,
   Req,
+  UnauthorizedException,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -42,6 +49,7 @@ import { VerifyEmailRequestDto } from '../dto/auth/request/verify-email-request.
 export class AuthController {
   constructor(
     private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
     private readonly responseService: ResponseService,
   ) {}
 
@@ -140,6 +148,33 @@ export class AuthController {
     );
 
     return this.responseService.success('Login successfully', result);
+  }
+
+  /**
+   * Get current authenticated user context
+   * api/v1/auth/me
+   * @returns User, current workspace, and roles without tokens
+   */
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current authenticated user context' })
+  @ApiResponse({ status: 200, description: 'Current user context returned.' })
+  @ApiResponse({ status: 401, description: 'Missing/invalid bearer token.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Account is inactive, unverified, or missing workspace.',
+  })
+  async me(@CurrentUser() currentUser: JwtPayload) {
+    if (!currentUser.workspaceId) {
+      throw new UnauthorizedException('Missing workspace context.');
+    }
+
+    const result = await this.queryBus.execute(
+      new GetCurrentAuthContextQuery(currentUser.id, currentUser.workspaceId),
+    );
+
+    return this.responseService.success('Current user context', result);
   }
 
   /**

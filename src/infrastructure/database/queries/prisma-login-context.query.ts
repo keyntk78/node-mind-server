@@ -42,6 +42,34 @@ export class PrismaLoginContextQuery implements LoginContextQuery {
     };
   }
 
+  async findWorkspaceForUser(
+    userId: string,
+    workspaceId: string,
+  ): Promise<LoginWorkspaceContext | null> {
+    const membership = await this.prisma.userWorkspace.findUnique({
+      where: {
+        userId_workspaceId: {
+          userId,
+          workspaceId,
+        },
+      },
+      include: {
+        workspace: true,
+      },
+    });
+
+    if (!membership || !membership.workspace.isActive) {
+      return null;
+    }
+
+    return {
+      id: membership.workspace.id,
+      name: membership.workspace.name,
+      slug: membership.workspace.slug,
+      membership: membership.membership as WorkspaceMembership,
+    };
+  }
+
   async findRoleCodes(userId: string, workspaceId: string): Promise<string[]> {
     const userRoles = await this.prisma.userRole.findMany({
       where: {
