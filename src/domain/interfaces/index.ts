@@ -1,3 +1,4 @@
+export * from './block-repository.interface';
 export * from './page-repository.interface';
 export * from './profile-repository.interface';
 export * from './role-repository.interface';

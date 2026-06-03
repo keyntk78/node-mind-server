@@ -1,4 +1,5 @@
 import { AuthController } from './controllers/auth.controller';
+import { BlocksController } from './controllers/blocks.controller';
 import { PagesController } from './controllers/pages.controller';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { PagesJwtAuthGuard } from '@common/guards/pages-jwt-auth.guard';
@@ -11,7 +12,7 @@ import { ApplicationModule } from '@application/application.module';
 
 @Module({
   imports: [ApplicationModule, TokenModule],
-  controllers: [AuthController, PagesController],
+  controllers: [AuthController, PagesController, BlocksController],
   providers: [
     LoggerService,
     ResponseService,
