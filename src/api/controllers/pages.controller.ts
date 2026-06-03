@@ -1,4 +1,5 @@
 import { CreatePageCommand } from '@application/page/command/create-page.command';
+import { UpdatePageMetadataCommand } from '@application/page/command/update-page-metadata.command';
 import { GetPageChildrenQuery } from '@application/page/query/get-page-children.query';
 import { GetPageDetailQuery } from '@application/page/query/get-page-detail.query';
 import { CurrentUserId } from '@common/decorators/current-user.decorator';
@@ -10,6 +11,8 @@ import {
   Controller,
   Get,
   Param,
+  ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -24,6 +27,7 @@ import {
 } from '@nestjs/swagger';
 import { CreatePageRequestDto } from '../dto/notes/request/create-page-request.dto';
 import { GetPageChildrenRequestDto } from '../dto/notes/request/get-page-children-request.dto';
+import { UpdatePageMetadataRequestDto } from '../dto/notes/request/update-page-metadata-request.dto';
 
 @ApiTags('pages')
 @Controller({
@@ -76,7 +80,7 @@ export class PagesController {
   @ApiResponse({ status: 403, description: 'Workspace access denied.' })
   @ApiResponse({ status: 404, description: 'Page not found.' })
   async getDetail(
-    @Param('pageId') pageId: string,
+    @Param('pageId', ParseUUIDPipe) pageId: string,
     @CurrentUserId() currentUserId: string,
   ) {
     const result = await this.queryBus.execute(
@@ -84,6 +88,31 @@ export class PagesController {
     );
 
     return this.responseService.success('Page retrieved successfully', result);
+  }
+
+  @Patch(':pageId')
+  @ApiOperation({ summary: 'Update page metadata' })
+  @ApiResponse({ status: 200, description: 'Page updated successfully.' })
+  @ApiResponse({ status: 400, description: 'Validation error.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({ status: 403, description: 'Workspace access denied.' })
+  @ApiResponse({ status: 404, description: 'Page not found.' })
+  async updateMetadata(
+    @Param('pageId', ParseUUIDPipe) pageId: string,
+    @Body() dto: UpdatePageMetadataRequestDto,
+    @CurrentUserId() currentUserId: string,
+  ) {
+    const page = await this.commandBus.execute(
+      new UpdatePageMetadataCommand(
+        currentUserId,
+        pageId,
+        dto.title,
+        dto.icon,
+        dto.coverUrl,
+      ),
+    );
+
+    return this.responseService.success('Page updated successfully', page);
   }
 
   @Post()

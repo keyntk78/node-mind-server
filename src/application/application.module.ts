@@ -8,6 +8,7 @@ import { RegisterHandler } from './auth/command/handler/register.handler';
 import { ResendVerificationOtpHandler } from './auth/command/handler/resend-verification-otp.handler';
 import { VerifyEmailHandler } from './auth/command/handler/verify-email.handler';
 import { CreatePageHandler } from './page/command/handler/create-page.handler';
+import { UpdatePageMetadataHandler } from './page/command/handler/update-page-metadata.handler';
 import { GetPageChildrenHandler } from './page/query/handler/get-page-children.handler';
 import { GetPageDetailHandler } from './page/query/handler/get-page-detail.handler';
 
@@ -19,6 +20,7 @@ const commandHandlers = [
   VerifyEmailHandler,
   ResendVerificationOtpHandler,
   CreatePageHandler,
+  UpdatePageMetadataHandler,
 ];
 
 const queryHandlers = [GetPageChildrenHandler, GetPageDetailHandler];
