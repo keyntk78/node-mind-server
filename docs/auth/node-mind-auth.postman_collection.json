@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Node Mind Auth",
-    "description": "Postman collection for implemented auth APIs: register, resend verification OTP, verify email, login, refresh token, logout.",
+    "description": "Postman collection for implemented auth APIs: register, resend verification OTP, verify email, login, current user, refresh token, logout.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -197,7 +197,50 @@
       ]
     },
     {
-      "name": "05 Refresh Token",
+      "name": "05 Current User",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/me",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "me"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 200\", function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"returns current auth context without tokens\", function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.data.user.email).to.eql(pm.environment.get(\"email\"));",
+              "  pm.expect(json.data.workspace.id).to.be.a(\"string\");",
+              "  pm.expect(json.data.roles).to.be.an(\"array\");",
+              "  pm.expect(json.data.accessToken).to.eql(undefined);",
+              "  pm.expect(json.data.refreshToken).to.eql(undefined);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Refresh Token",
       "request": {
         "method": "POST",
         "header": [
@@ -241,10 +284,14 @@
       ]
     },
     {
-      "name": "06 Logout",
+      "name": "07 Logout",
       "request": {
         "method": "POST",
         "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
           {
             "key": "Content-Type",
             "value": "application/json"

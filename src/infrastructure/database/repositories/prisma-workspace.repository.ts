@@ -8,7 +8,9 @@ import { Inject, Injectable } from '@nestjs/common';
 
 @Injectable()
 export class PrismaWorkspaceRepository implements WorkspaceRepository {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaClientLike) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaClientLike,
+  ) {}
 
   async findBySlug(slug: string): Promise<Workspace | null> {
     const workspace = await this.prisma.workspace.findUnique({
@@ -16,6 +18,22 @@ export class PrismaWorkspaceRepository implements WorkspaceRepository {
     });
 
     return workspace ? WorkspacePrismaMapper.toDomain(workspace) : null;
+  }
+
+  async isMember(userId: string, workspaceId: string): Promise<boolean> {
+    const membership = await this.prisma.userWorkspace.findUnique({
+      where: {
+        userId_workspaceId: {
+          userId,
+          workspaceId,
+        },
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    return Boolean(membership);
   }
 
   async save(workspace: Workspace): Promise<void> {
@@ -36,8 +54,7 @@ export class PrismaWorkspaceRepository implements WorkspaceRepository {
   }
 
   async addMember(userWorkspace: UserWorkspace): Promise<void> {
-    const persistence =
-      UserWorkspacePrismaMapper.toPersistence(userWorkspace);
+    const persistence = UserWorkspacePrismaMapper.toPersistence(userWorkspace);
 
     await this.prisma.userWorkspace.upsert({
       where: {

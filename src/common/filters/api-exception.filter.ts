@@ -29,6 +29,8 @@ const DOMAIN_EXCEPTION_STATUS_MAP: Record<string, HttpStatus> = {
   INVALID_PASSWORD: HttpStatus.BAD_REQUEST,
   INVALID_EMAIL: HttpStatus.BAD_REQUEST,
   INVALID_REFRESH_TOKEN: HttpStatus.UNAUTHORIZED,
+  WORKSPACE_ACCESS_DENIED: HttpStatus.FORBIDDEN,
+  PAGE_NOT_FOUND: HttpStatus.NOT_FOUND,
 };
 
 @Catch()
@@ -101,29 +103,43 @@ export class ApiExceptionFilter implements ExceptionFilter {
             : exceptionResponse.message;
         }
 
+        const explicitCode =
+          typeof exceptionResponse?.error?.code === 'string'
+            ? exceptionResponse.error.code
+            : typeof exceptionResponse?.code === 'string'
+              ? exceptionResponse.code
+              : null;
+        const explicitDetails =
+          exceptionResponse?.error?.details ?? exceptionResponse?.details;
+
         // Convert HTTP statuses into stable client-facing error codes.
-        switch (status) {
-          case HttpStatus.UNAUTHORIZED:
-            code = 'AUTHENTICATION_ERROR';
-            break;
-          case HttpStatus.FORBIDDEN:
-            code = 'AUTHORIZATION_ERROR';
-            break;
-          case HttpStatus.NOT_FOUND:
-            code = 'NOT_FOUND';
-            break;
-          case HttpStatus.CONFLICT:
-            code = 'CONFLICT';
-            break;
-          case HttpStatus.UNPROCESSABLE_ENTITY:
-            code = 'VALIDATION_ERROR';
-            details = exceptionResponse.message;
-            break;
-          case HttpStatus.TOO_MANY_REQUESTS:
-            code = 'RATE_LIMIT_EXCEEDED';
-            break;
-          default:
-            code = 'HTTP_ERROR';
+        if (explicitCode) {
+          code = explicitCode;
+          details = explicitDetails ?? details;
+        } else {
+          switch (status) {
+            case HttpStatus.UNAUTHORIZED:
+              code = 'AUTHENTICATION_ERROR';
+              break;
+            case HttpStatus.FORBIDDEN:
+              code = 'AUTHORIZATION_ERROR';
+              break;
+            case HttpStatus.NOT_FOUND:
+              code = 'NOT_FOUND';
+              break;
+            case HttpStatus.CONFLICT:
+              code = 'CONFLICT';
+              break;
+            case HttpStatus.UNPROCESSABLE_ENTITY:
+              code = 'VALIDATION_ERROR';
+              details = exceptionResponse.message;
+              break;
+            case HttpStatus.TOO_MANY_REQUESTS:
+              code = 'RATE_LIMIT_EXCEEDED';
+              break;
+            default:
+              code = 'HTTP_ERROR';
+          }
         }
       }
     } else if (exception instanceof Error) {

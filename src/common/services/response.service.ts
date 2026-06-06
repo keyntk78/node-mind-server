@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { Request } from 'express';
 import {
   ApiResponse,
+  CursorPaginatedResponse,
+  CursorPaginationMeta,
   ErrorResponse,
   PaginatedResponse,
   PaginationMeta,
@@ -62,6 +64,14 @@ export class ResponseService {
     };
 
     return new PaginatedResponse(message, data, pagination);
+  }
+
+  cursorPaginated<T>(
+    message: string,
+    data: T[],
+    meta: CursorPaginationMeta,
+  ): CursorPaginatedResponse<T> {
+    return new CursorPaginatedResponse(message, data, meta);
   }
 
   /**

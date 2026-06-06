@@ -287,7 +287,64 @@ pm.test("returns workspace context", function () {
 
 ---
 
-## 6. Request 5: Refresh Token
+## 6. Request 5: Current User
+
+```http
+GET {{baseUrl}}/me
+Authorization: Bearer {{accessToken}}
+```
+
+Không có body.
+
+Expected status:
+
+```text
+200 OK
+```
+
+Expected response:
+
+```json
+{
+  "message": "Current user context",
+  "data": {
+    "user": {
+      "id": "user-uuid",
+      "email": "user@example.com",
+      "isVerified": true,
+      "mfaEnabled": false
+    },
+    "workspace": {
+      "id": "workspace-uuid",
+      "name": "Nguyen Van's Workspace",
+      "slug": "nguyen-vans-workspace",
+      "membership": "OWNER"
+    },
+    "roles": ["WORKSPACE_OWNER"]
+  }
+}
+```
+
+Postman Tests:
+
+```js
+pm.test("status is 200", function () {
+  pm.response.to.have.status(200);
+});
+
+pm.test("returns current auth context without tokens", function () {
+  const json = pm.response.json();
+  pm.expect(json.data.user.email).to.eql(pm.environment.get("email"));
+  pm.expect(json.data.workspace.id).to.be.a("string");
+  pm.expect(json.data.roles).to.be.an("array");
+  pm.expect(json.data.accessToken).to.eql(undefined);
+  pm.expect(json.data.refreshToken).to.eql(undefined);
+});
+```
+
+---
+
+## 7. Request 6: Refresh Token
 
 ```http
 POST {{baseUrl}}/refresh
@@ -339,7 +396,7 @@ Ghi chú: refresh token được rotate mỗi lần gọi. Sau request này, lu�
 
 ---
 
-## 7. Request 6: Logout
+## 8. Request 7: Logout
 
 ```http
 POST {{baseUrl}}/logout
@@ -393,7 +450,7 @@ Ghi chú: sau logout, refresh token cũ sẽ trả `401 INVALID_REFRESH_TOKEN` n
 
 ---
 
-## 8. Suggested Collection Order
+## 9. Suggested Collection Order
 
 | Order | Request | Khi nào chạy |
 |-------|---------|--------------|
@@ -401,14 +458,15 @@ Ghi chú: sau logout, refresh token cũ sẽ trả `401 INVALID_REFRESH_TOKEN` n
 | 2 | Resend Verification OTP | Khi OTP hết hạn hoặc muốn test resend |
 | 3 | Verify Email | Sau khi lấy OTP mới nhất |
 | 4 | Login | Sau khi user đã verify email |
-| 5 | Refresh Token | Khi muốn test rotate token |
-| 6 | Logout | Khi muốn kết thúc session hiện tại |
+| 5 | Current User | Sau khi có access token |
+| 6 | Refresh Token | Khi muốn test rotate token |
+| 7 | Logout | Khi muốn kết thúc session hiện tại |
 
 Nếu đã verify email thành công, không thể verify lại cùng user. Muốn test lại từ đầu, dùng email mới.
 
 ---
 
-## 9. Local Services Checklist
+## 10. Local Services Checklist
 
 | Service | Command / URL |
 |---------|---------------|
@@ -419,7 +477,7 @@ Nếu đã verify email thành công, không thể verify lại cùng user. Mu�
 
 ---
 
-## 10. Common Errors
+## 11. Common Errors
 
 | Case | Expected |
 |------|----------|
@@ -429,5 +487,7 @@ Nếu đã verify email thành công, không thể verify lại cùng user. Mu�
 | Email sai format | `400 VALIDATION_ERROR` |
 | Login sai email/password | `401 INVALID_CREDENTIALS` |
 | Login khi user chưa verify | `403 ACCOUNT_NOT_READY` |
+| Current user thiếu/sai access token | `401 AUTHENTICATION_ERROR` |
+| Current user không còn thuộc workspace trong token | `403 WORKSPACE_REQUIRED` |
 | Refresh token invalid/expired | `401 INVALID_REFRESH_TOKEN` |
 | Logout bằng refresh token invalid/expired | `401 INVALID_REFRESH_TOKEN` |

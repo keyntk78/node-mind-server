@@ -92,6 +92,12 @@ export interface PaginationMeta {
   hasPrev: boolean;
 }
 
+export interface CursorPaginationMeta {
+  limit: number;
+  hasMore: boolean;
+  nextCursor: string | null;
+}
+
 /**
  * PaginatedResponse extends SuccessResponse, with data always represented as an array.
  *
@@ -109,5 +115,19 @@ export class PaginatedResponse<T = any> extends SuccessResponse<T[]> {
   ) {
     super(message, data, meta);
     this.pagination = pagination;
+  }
+}
+
+export class CursorPaginatedResponse<T = any> extends SuccessResponse<T[]> {
+  meta: CursorPaginationMeta;
+
+  constructor(
+    message: string,
+    data: T[],
+    meta: CursorPaginationMeta,
+    requestMeta?: any,
+  ) {
+    super(message, data, requestMeta);
+    this.meta = meta;
   }
 }

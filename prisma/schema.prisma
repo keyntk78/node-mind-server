@@ -75,6 +75,7 @@ model Workspace {
   members     UserWorkspace[]
   roles       Role[]
   userRoles   UserRole[]
+  pages       Page[]
 
   @@index([slug], map: "idx_workspaces_slug")
   @@map("workspaces")
@@ -136,4 +137,149 @@ model UserSession {
   @@index([userId], map: "idx_sessions_user")
   @@index([expiresAt], map: "idx_sessions_expires")
   @@map("user_sessions")
+}
+
+model Page {
+  id              String   @id @default(uuid()) @db.Uuid
+
+  workspaceId     String   @map("workspace_id") @db.Uuid
+  parentId        String?  @map("parent_id") @db.Uuid
+
+  title           String   @default("Untitled") @db.VarChar(500)
+
+  icon            String?  @db.VarChar(50)
+  coverUrl        String?  @map("cover_url")
+
+  orderIndex      Int      @default(0) @map("order_index")
+
+  isFavorite      Boolean  @default(false) @map("is_favorite")
+  isArchived      Boolean  @default(false) @map("is_archived")
+
+  isDeleted       Boolean  @default(false) @map("is_deleted")
+  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  createdById     String   @map("created_by_id") @db.Uuid
+  updatedById     String?  @map("updated_by_id") @db.Uuid
+
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  parent          Page?    @relation("PageTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children        Page[]   @relation("PageTree")
+
+  blocks          Block[]
+  versions        PageVersion[]
+  attachments     Attachment[]
+  tags            PageTag[]
+
+  @@index([workspaceId])
+  @@index([parentId])
+  @@index([workspaceId, parentId])
+  @@map("pages")
+}
+
+model Block {
+  id           String   @id @default(uuid()) @db.Uuid
+
+  pageId       String   @map("page_id") @db.Uuid
+
+  type         BlockType
+
+  content      Json
+
+  orderIndex   Int      @default(0) @map("order_index")
+
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  page         Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId])
+  @@index([pageId, orderIndex])
+  @@map("blocks")
+}
+
+enum BlockType {
+  PARAGRAPH
+  HEADING_1
+  HEADING_2
+  HEADING_3
+  TODO
+  BULLET_LIST
+  NUMBERED_LIST
+  QUOTE
+  CODE
+  IMAGE
+  FILE
+  CALLOUT
+  DIVIDER
+}
+
+model PageVersion {
+  id           String   @id @default(uuid()) @db.Uuid
+
+  pageId       String   @map("page_id") @db.Uuid
+
+  snapshot     Json
+
+  createdById  String   @map("created_by_id") @db.Uuid
+
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  page         Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId])
+  @@map("page_versions")
+}
+
+model Attachment {
+  id            String   @id @default(uuid()) @db.Uuid
+
+  workspaceId   String   @map("workspace_id") @db.Uuid
+  pageId        String?  @map("page_id") @db.Uuid
+
+  fileName      String   @map("file_name")
+  mimeType      String   @map("mime_type")
+  fileSize      BigInt   @map("file_size")
+
+  storageKey    String   @map("storage_key")
+
+  uploadedById  String   @map("uploaded_by_id") @db.Uuid
+
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  page          Page? @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([pageId])
+  @@map("attachments")
+}
+
+model Tag {
+  id            String   @id @default(uuid()) @db.Uuid
+
+  workspaceId   String   @map("workspace_id") @db.Uuid
+
+  name          String   @db.VarChar(100)
+  color         String?  @db.VarChar(20)
+
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  pages         PageTag[]
+
+  @@unique([workspaceId, name])
+  @@map("tags")
+}
+
+model PageTag {
+  pageId        String @map("page_id") @db.Uuid
+  tagId         String @map("tag_id") @db.Uuid
+
+  page          Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  tag           Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([pageId, tagId])
+  @@map("page_tags")
 }
